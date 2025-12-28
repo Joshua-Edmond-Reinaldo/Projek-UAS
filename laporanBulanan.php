@@ -47,6 +47,7 @@ $laba_bersih = $total_penjualan - $total_pembelian;
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laporan Bulanan</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
         body {
@@ -168,8 +169,62 @@ $laba_bersih = $total_penjualan - $total_pembelian;
             </div>
         </div>
 
+        <div style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 30px;">
+            <div style="position: relative; height: 300px; width: 100%;">
+                <canvas id="labaRugiChart"></canvas>
+            </div>
+        </div>
+
         <a href="cetakLaporanBulananPdf.php?bulan=<?= $bulan ?>&tahun=<?= $tahun ?>" target="_blank" class="btn-print">🖨️ Cetak PDF</a>
         <a href="dashboard.php" class="btn-back">← Kembali ke Dashboard</a>
     </div>
+
+    <script>
+        const ctx = document.getElementById('labaRugiChart').getContext('2d');
+        const labaRugiChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Pemasukan (Penjualan)', 'Pengeluaran (Pembelian)'],
+                datasets: [{
+                    label: 'Total (Rp)',
+                    data: [<?= $total_penjualan ?>, <?= $total_pembelian ?>],
+                    backgroundColor: [
+                        'rgba(80, 250, 123, 0.6)', // Hijau untuk Pemasukan
+                        'rgba(255, 85, 85, 0.6)'   // Merah untuk Pengeluaran
+                    ],
+                    borderColor: [
+                        '#50fa7b',
+                        '#ff5555'
+                    ],
+                    borderWidth: 2,
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    title: {
+                        display: true,
+                        text: 'Grafik Perbandingan Keuangan',
+                        color: '#e2e8f0',
+                        font: { size: 16, family: "'JetBrains Mono', monospace" }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: '#bd93f9', font: { family: "'JetBrains Mono', monospace" } },
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                    },
+                    x: {
+                        ticks: { color: '#bd93f9', font: { family: "'JetBrains Mono', monospace" } },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    </script>
 </body>
 </html>

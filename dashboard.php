@@ -473,6 +473,7 @@ while ($row_m = $res_monthly->fetch_assoc()) {
             <?php if(isset($_SESSION['level']) && $_SESSION['level'] == 'admin'): ?>
                 <a href="registrasiUser.php" class="btn btn-secondary" style="background: linear-gradient(135deg, #8be9fd, #bd93f9); color: #0f0f23;">👤 Tambah User</a>
                 <a href="tampilLogAktivitas.php" class="btn btn-secondary" style="background: linear-gradient(135deg, #ff79c6, #ff5555); color: #0f0f23;">📜 Log Aktivitas</a>
+                <a href="laporanBulanan.php" class="btn btn-secondary" style="background: linear-gradient(135deg, #f1c40f, #f39c12); color: #0f0f23;">📊 Laporan Laba Rugi</a>
             <?php endif; ?>
 
             <a href="settings.php" class="btn btn-secondary" style="background: linear-gradient(135deg, #6272a4, #44475a); color: #f8f8f2;">⚙️ Settings</a>
