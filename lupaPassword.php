@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (isset($_SESSION['username'])) {
-    header("location:tampilDataMhs.php");
+    header("location:dashboard.php");
     exit;
 }
 
@@ -12,12 +12,12 @@ $error = "";
 $success = "";
 $found_id = "";
 
-// Tahap 1: Verifikasi NIM dan Email
+// Tahap 1: Verifikasi Username dan Email
 if (isset($_POST['verify_user'])) {
-    $nim = mysqli_real_escape_string($conn, $_POST['nim']);
+    $username = mysqli_real_escape_string($conn, $_POST['username']);
     $email = mysqli_real_escape_string($conn, $_POST['email']);
 
-    $sql = "SELECT id FROM table_mhs WHERE nim='$nim' AND email='$email'";
+    $sql = "SELECT id FROM table_user WHERE username='$username' AND email='$email'";
     $result = $conn->query($sql);
 
     if ($result && $result->num_rows > 0) {
@@ -25,7 +25,7 @@ if (isset($_POST['verify_user'])) {
         $found_id = $row['id'];
         $step = 2; // Lanjut ke reset password
     } else {
-        $error = "Data tidak ditemukan! Pastikan NIM dan Email sesuai dengan yang terdaftar.";
+        $error = "Data tidak ditemukan! Pastikan Username dan Email sesuai dengan yang terdaftar.";
     }
 }
 
@@ -44,7 +44,7 @@ if (isset($_POST['reset_pass'])) {
             // Simpan sebagai plain text (sesuai permintaan sebelumnya)
             $pass_final = mysqli_real_escape_string($conn, $pass1);
             
-            $sql_update = "UPDATE table_mhs SET pass='$pass_final' WHERE id=$id";
+            $sql_update = "UPDATE table_user SET password='$pass_final' WHERE id=$id";
             
             if ($conn->query($sql_update)) {
                 $step = 3; // Sukses
@@ -191,8 +191,8 @@ if (isset($_POST['reset_pass'])) {
         <h2>🔐 Reset Password</h2>
         <?php if ($error) echo "<div class='error'>$error</div>"; ?>
         <form method="POST">
-            <label>NIM</label>
-            <input type="text" name="nim" placeholder="Masukkan NIM" required>
+            <label>Username</label>
+            <input type="text" name="username" placeholder="Masukkan Username" required>
             
             <label>Email Terdaftar</label>
             <input type="email" name="email" placeholder="Masukkan Email" required>

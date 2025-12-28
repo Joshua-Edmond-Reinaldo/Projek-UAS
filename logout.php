@@ -1,6 +1,17 @@
 <?php
 session_start();
+require "koneksi.php";
+
+if (isset($_SESSION['username'])) {
+    catatLog($conn, $_SESSION['username'], 'Logout', 'User berhasil logout');
+}
+
 session_destroy();
+
+// Hapus cookie remember me saat logout
+if (isset($_COOKIE['remember_user'])) {
+    setcookie('remember_user', '', time() - 3600, '/');
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">

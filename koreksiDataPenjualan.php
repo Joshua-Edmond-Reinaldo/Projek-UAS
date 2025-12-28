@@ -1,5 +1,5 @@
 <?php
-// koreksiDataMhs.php
+// koreksiDataPenjualan.php
 
 require "koneksi.php";
 
@@ -10,8 +10,8 @@ if (!isset($_GET['kode'])) {
 
 $id = (int)$_GET['kode']; // Casting ke integer untuk keamanan
 
-// Query untuk mengambil data mahasiswa berdasarkan ID tersebut
-$sql = "SELECT * FROM table_mhs WHERE id = $id";
+// Query untuk mengambil data transaksi berdasarkan ID tersebut
+$sql = "SELECT * FROM table_penjualan WHERE id = $id";
 
 // Eksekusi query
 $result = $conn->query($sql);
@@ -23,7 +23,7 @@ if (!$result) {
 if ($result->num_rows > 0) {
     $row = $result->fetch_assoc();
 } else {
-    echo "Data mahasiswa tidak ditemukan.";
+    echo "Data transaksi tidak ditemukan.";
     exit;
 }
 mysqli_close($conn);
@@ -34,7 +34,7 @@ mysqli_close($conn);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Koreksi Data Mahasiswa</title>
+    <title>Koreksi Data Penjualan</title>
     <style>
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
 
@@ -135,23 +135,23 @@ mysqli_close($conn);
         width: 100%;
         padding: 12px 15px;
         border: 1px solid #44475a;
-        border-radius: 8px;
-        background-color: #333642; /* Warna input yang lebih gelap */
+        border-radius: 12px;
+        background: linear-gradient(145deg, #2d2d42, #3a3a52);
         color: #f8f8f2;
         box-sizing: border-box;
         font-family: 'JetBrains Mono', monospace;
         font-size: 0.9em;
         transition: all 0.3s ease;
-        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     }
 
     input:focus, 
     select:focus, 
     textarea:focus {
-        border-color: #50fa7b; /* Border glow saat fokus */
-        box-shadow: 0 0 8px rgba(80, 250, 123, 0.5), inset 0 1px 3px rgba(0, 0, 0, 0.5);
+        border-color: #50fa7b;
+        box-shadow: 0 0 0 3px rgba(80, 250, 123, 0.1), 0 8px 25px rgba(80, 250, 123, 0.15);
         outline: none;
-        background-color: #3a3d47;
+        transform: translateY(-2px);
     }
 
     textarea {
@@ -162,9 +162,10 @@ mysqli_close($conn);
     /* Radio/Checkbox Group */
     .radio-group, .checkbox-group {
         margin-top: 10px;
-        padding: 10px;
-        border: 1px dashed rgba(99, 102, 241, 0.2);
-        border-radius: 8px;
+        padding: 20px;
+        border: 1px solid rgba(255, 184, 108, 0.2);
+        border-radius: 12px;
+        background: linear-gradient(145deg, #1a1a2e, #2a2a3e);
     }
 
     .radio-group input[type="radio"],
@@ -181,7 +182,7 @@ mysqli_close($conn);
         appearance: none; 
         width: 16px;
         height: 16px;
-        border: 2px solid #ff79c6;
+        border: 2px solid #50fa7b;
         border-radius: 50%;
         vertical-align: middle;
         position: relative;
@@ -189,9 +190,9 @@ mysqli_close($conn);
     }
     
     .radio-group input[type="radio"]:checked {
-        background-color: #ff79c6;
-        border-color: #ff79c6;
-        box-shadow: 0 0 5px #ff79c6;
+        background-color: #50fa7b;
+        border-color: #50fa7b;
+        box-shadow: 0 0 10px rgba(80, 250, 123, 0.5);
     }
 
 
@@ -234,62 +235,62 @@ mysqli_close($conn);
 </head>
 <body>
     <div class="container">
-        <h1>📝 Koreksi Data Mahasiswa</h1>
+        <h1>📝 Koreksi Data Penjualan</h1>
         
-        <form action="simpanKoreksiData.php" method="POST">
+        <form action="simpanKoreksiPenjualan.php" method="POST">
             
             <input type="hidden" name="id" value="<?= isset($row['id']) ? $row['id'] : '' ?>">
 
-            <label for="nim">NIM:</label>
-            <input type="text" id="nim" name="nim" value="<?= isset($row['nim']) ? $row['nim'] : '' ?>" required>
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" value="<?= isset($row['username']) ? $row['username'] : '' ?>" required>
 
-            <label for="nama">Nama:</label>
-            <input type="text" id="nama" name="nama" value="<?= isset($row['nama']) ? $row['nama'] : '' ?>" required>
+            <label for="nama_pembeli">Nama Pembeli:</label>
+            <input type="text" id="nama_pembeli" name="nama_pembeli" value="<?= isset($row['nama_pembeli']) ? $row['nama_pembeli'] : '' ?>" required>
 
-            <label for="umur">Umur:</label>
-            <input type="number" id="umur" name="umur" value="<?= isset($row['umur']) ? $row['umur'] : '' ?>">
+            <label for="jumlah_lisensi">Jumlah Lisensi:</label>
+            <input type="number" id="jumlah_lisensi" name="jumlah_lisensi" value="<?= isset($row['jumlah_lisensi']) ? $row['jumlah_lisensi'] : '' ?>">
 
-            <label for="tempatLahir">Tempat Lahir:</label>
-            <input type="text" id="tempatLahir" name="tempatLahir" value="<?= isset($row['tempatLahir']) ? $row['tempatLahir'] : '' ?>">
+            <label for="nama_software">Nama Software:</label>
+            <input type="text" id="nama_software" name="nama_software" value="<?= isset($row['nama_software']) ? $row['nama_software'] : '' ?>">
 
-            <label for="tanggalLahir">Tanggal Lahir:</label>
-            <input type="date" id="tanggalLahir" name="tanggalLahir" value="<?= isset($row['tanggalLahir']) ? $row['tanggalLahir'] : '' ?>">
+            <label for="tanggal_transaksi">Tanggal Transaksi:</label>
+            <input type="date" id="tanggal_transaksi" name="tanggal_transaksi" value="<?= isset($row['tanggal_transaksi']) ? $row['tanggal_transaksi'] : '' ?>">
 
-            <label for="jmlSaudara">Jumlah Saudara:</label>
-            <input type="number" id="jmlSaudara" name="jmlSaudara" value="<?= isset($row['jmlSaudara']) ? $row['jmlSaudara'] : '' ?>">
+            <label for="harga">Harga Total:</label>
+            <input type="number" id="harga" name="harga" value="<?= isset($row['harga']) ? $row['harga'] : '' ?>">
 
-            <label for="alamat">Alamat:</label>
+            <label for="alamat">Alamat Tagihan:</label>
             <textarea id="alamat" name="alamat"><?= isset($row['alamat']) ? $row['alamat'] : '' ?></textarea>
 
-            <label for="kota">Kota:</label>
-            <input type="text" id="kota" name="kota" value="<?= isset($row['kota']) ? $row['kota'] : '' ?>">
+            <label for="metode_pembayaran">Metode Pembayaran:</label>
+            <input type="text" id="metode_pembayaran" name="metode_pembayaran" value="<?= isset($row['metode_pembayaran']) ? $row['metode_pembayaran'] : '' ?>">
 
             <label for="noHP">No HP:</label>
-            <input type="text" id="noHP" name="noHP" value="<?= isset($row['noHP']) ? $row['noHP'] : '' ?>">
+            <input type="text" id="noHP" name="no_hp" value="<?= isset($row['no_hp']) ? $row['no_hp'] : '' ?>">
 
-            <label>Jenis Kelamin:</label>
+            <label>Tipe Lisensi:</label>
             <div class="radio-group">
-                <input type="radio" id="jk_l" name="jenisKelamin" value="Laki - Laki" <?= (isset($row['jenisKelamin']) && $row['jenisKelamin'] == 'Laki - Laki') ? 'checked' : '' ?>>
-                <label for="jk_l">Laki - Laki</label>
-                <input type="radio" id="jk_p" name="jenisKelamin" value="Perempuan" <?= (isset($row['jenisKelamin']) && $row['jenisKelamin'] == 'Perempuan') ? 'checked' : '' ?>>
-                <label for="jk_p">Perempuan</label>
+                <input type="radio" id="tipe_p" name="tipe_lisensi" value="Personal" <?= (isset($row['tipe_lisensi']) && $row['tipe_lisensi'] == 'Personal') ? 'checked' : '' ?>>
+                <label for="tipe_p">Personal</label>
+                <input type="radio" id="tipe_b" name="tipe_lisensi" value="Bisnis" <?= (isset($row['tipe_lisensi']) && $row['tipe_lisensi'] == 'Bisnis') ? 'checked' : '' ?>>
+                <label for="tipe_b">Bisnis</label>
             </div>
 
-            <label for="status">Status:</label>
-            <select id="status" name="status">
-                <option value="Aktif" <?= (isset($row['status']) && $row['status'] == 'Aktif') ? 'selected' : '' ?>>Aktif</option>
-                <option value="Cuti" <?= (isset($row['status']) && $row['status'] == 'Cuti') ? 'selected' : '' ?>>Cuti</option>
-                <option value="Lulus" <?= (isset($row['status']) && $row['status'] == 'Lulus') ? 'selected' : '' ?>>Lulus</option>
+            <label for="status_pembayaran">Status Pembayaran:</label>
+            <select id="status_pembayaran" name="status_pembayaran">
+                <option value="Lunas" <?= (isset($row['status_pembayaran']) && $row['status_pembayaran'] == 'Lunas') ? 'selected' : '' ?>>Lunas</option>
+                <option value="Pending" <?= (isset($row['status_pembayaran']) && $row['status_pembayaran'] == 'Pending') ? 'selected' : '' ?>>Pending</option>
+                <option value="Batal" <?= (isset($row['status_pembayaran']) && $row['status_pembayaran'] == 'Batal') ? 'selected' : '' ?>>Batal</option>
             </select>
 
-            <label for="hobi">Hobi:</label>
-            <input type="text" id="hobi" name="hobi" value="<?= isset($row['hobi']) ? $row['hobi'] : '' ?>">
+            <label for="fitur_tambahan">Fitur Tambahan:</label>
+            <input type="text" id="fitur_tambahan" name="fitur_tambahan" value="<?= isset($row['fitur_tambahan']) ? $row['fitur_tambahan'] : '' ?>">
 
             <label for="email">Email:</label>
             <input type="email" id="email" name="email" value="<?= isset($row['email']) ? $row['email'] : '' ?>">
 
-            <label for="pass">Password:</label>
-            <input type="password" id="pass" name="pass" placeholder="Isi hanya jika ingin mengubah password">
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" placeholder="Isi hanya jika ingin mengubah password">
 
             <input type="submit" value="💾 Simpan Perubahan">
         </form>
