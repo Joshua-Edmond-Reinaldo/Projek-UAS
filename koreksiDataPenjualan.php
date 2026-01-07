@@ -49,7 +49,7 @@ mysqli_close($conn);
         background-attachment: fixed;
         color: #e2e8f0;
         margin: 0;
-        padding: 40px 20px;
+        padding: 20px;
         min-height: 100vh;
     }
     
@@ -70,7 +70,7 @@ mysqli_close($conn);
     }
 
     .container {
-        max-width: 800px;
+        max-width: 900px;
         margin: 0 auto;
         /* Container style yang sama */
         background: linear-gradient(145deg, #1e1e2e, #2a2a3e);
@@ -117,7 +117,7 @@ mysqli_close($conn);
     
     label {
         display: block;
-        margin-top: 20px;
+        margin-top: 15px;
         margin-bottom: 5px;
         font-weight: 500;
         color: #bd93f9; /* Warna ungu untuk label */
@@ -161,7 +161,7 @@ mysqli_close($conn);
 
     /* Radio/Checkbox Group */
     .radio-group, .checkbox-group {
-        margin-top: 10px;
+        margin-top: 0;
         padding: 20px;
         border: 1px solid rgba(255, 184, 108, 0.2);
         border-radius: 12px;
@@ -230,6 +230,31 @@ mysqli_close($conn);
         color: #777;
         opacity: 0.7;
     }
+
+    /* Grid Layout for Form */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+    .full-width { grid-column: span 2; }
+    .section-title {
+        grid-column: span 2;
+        color: #50fa7b;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding-bottom: 10px;
+        margin-top: 20px;
+        margin-bottom: 10px;
+        font-size: 1.1em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    @media (max-width: 768px) {
+        .form-grid { grid-template-columns: 1fr; }
+        .full-width { grid-column: span 1; }
+        .section-title { grid-column: span 1; }
+    }
     
 </style>
 </head>
@@ -238,59 +263,82 @@ mysqli_close($conn);
         <h1>📝 Koreksi Data Penjualan</h1>
         
         <form action="simpanKoreksiPenjualan.php" method="POST">
-            
             <input type="hidden" name="id" value="<?= isset($row['id']) ? $row['id'] : '' ?>">
 
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" value="<?= isset($row['username']) ? $row['username'] : '' ?>" required>
+            <div class="form-grid">
+                <!-- Bagian Pelanggan -->
+                <h3 class="section-title">👤 Informasi Pelanggan</h3>
+                
+                <div>
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" value="<?= isset($row['username']) ? $row['username'] : '' ?>" required>
+                </div>
+                <div>
+                    <label for="nama_pembeli">Nama Pembeli</label>
+                    <input type="text" id="nama_pembeli" name="nama_pembeli" value="<?= isset($row['nama_pembeli']) ? $row['nama_pembeli'] : '' ?>" required>
+                </div>
+                <div>
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" value="<?= isset($row['email']) ? $row['email'] : '' ?>">
+                </div>
+                <div>
+                    <label for="noHP">No HP</label>
+                    <input type="text" id="noHP" name="no_hp" value="<?= isset($row['no_hp']) ? $row['no_hp'] : '' ?>">
+                </div>
+                <div class="full-width">
+                    <label for="alamat">Alamat Tagihan</label>
+                    <textarea id="alamat" name="alamat" rows="2"><?= isset($row['alamat']) ? $row['alamat'] : '' ?></textarea>
+                </div>
 
-            <label for="nama_pembeli">Nama Pembeli:</label>
-            <input type="text" id="nama_pembeli" name="nama_pembeli" value="<?= isset($row['nama_pembeli']) ? $row['nama_pembeli'] : '' ?>" required>
+                <!-- Bagian Transaksi -->
+                <h3 class="section-title">📦 Detail Transaksi</h3>
+                
+                <div>
+                    <label for="nama_software">Nama Software</label>
+                    <input type="text" id="nama_software" name="nama_software" value="<?= isset($row['nama_software']) ? $row['nama_software'] : '' ?>">
+                </div>
+                <div>
+                    <label for="jumlah_lisensi">Jumlah Lisensi</label>
+                    <input type="number" id="jumlah_lisensi" name="jumlah_lisensi" value="<?= isset($row['jumlah_lisensi']) ? $row['jumlah_lisensi'] : '' ?>">
+                </div>
+                <div>
+                    <label for="tanggal_transaksi">Tanggal Transaksi</label>
+                    <input type="date" id="tanggal_transaksi" name="tanggal_transaksi" value="<?= isset($row['tanggal_transaksi']) ? $row['tanggal_transaksi'] : '' ?>">
+                </div>
+                <div>
+                    <label>Tipe Lisensi</label>
+                    <div class="radio-group" style="padding: 10px;">
+                        <input type="radio" id="tipe_p" name="tipe_lisensi" value="Personal" <?= (isset($row['tipe_lisensi']) && $row['tipe_lisensi'] == 'Personal') ? 'checked' : '' ?>>
+                        <label for="tipe_p">Personal</label>
+                        <input type="radio" id="tipe_b" name="tipe_lisensi" value="Bisnis" <?= (isset($row['tipe_lisensi']) && $row['tipe_lisensi'] == 'Bisnis') ? 'checked' : '' ?>>
+                        <label for="tipe_b">Bisnis</label>
+                    </div>
+                </div>
+                <div class="full-width">
+                    <label for="fitur_tambahan">Fitur Tambahan</label>
+                    <input type="text" id="fitur_tambahan" name="fitur_tambahan" value="<?= isset($row['fitur_tambahan']) ? $row['fitur_tambahan'] : '' ?>">
+                </div>
 
-            <label for="jumlah_lisensi">Jumlah Lisensi:</label>
-            <input type="number" id="jumlah_lisensi" name="jumlah_lisensi" value="<?= isset($row['jumlah_lisensi']) ? $row['jumlah_lisensi'] : '' ?>">
+                <!-- Bagian Pembayaran -->
+                <h3 class="section-title">💰 Pembayaran</h3>
 
-            <label for="nama_software">Nama Software:</label>
-            <input type="text" id="nama_software" name="nama_software" value="<?= isset($row['nama_software']) ? $row['nama_software'] : '' ?>">
-
-            <label for="tanggal_transaksi">Tanggal Transaksi:</label>
-            <input type="date" id="tanggal_transaksi" name="tanggal_transaksi" value="<?= isset($row['tanggal_transaksi']) ? $row['tanggal_transaksi'] : '' ?>">
-
-            <label for="harga">Harga Total:</label>
-            <input type="number" id="harga" name="harga" value="<?= isset($row['harga']) ? $row['harga'] : '' ?>">
-
-            <label for="alamat">Alamat Tagihan:</label>
-            <textarea id="alamat" name="alamat"><?= isset($row['alamat']) ? $row['alamat'] : '' ?></textarea>
-
-            <label for="metode_pembayaran">Metode Pembayaran:</label>
-            <input type="text" id="metode_pembayaran" name="metode_pembayaran" value="<?= isset($row['metode_pembayaran']) ? $row['metode_pembayaran'] : '' ?>">
-
-            <label for="noHP">No HP:</label>
-            <input type="text" id="noHP" name="no_hp" value="<?= isset($row['no_hp']) ? $row['no_hp'] : '' ?>">
-
-            <label>Tipe Lisensi:</label>
-            <div class="radio-group">
-                <input type="radio" id="tipe_p" name="tipe_lisensi" value="Personal" <?= (isset($row['tipe_lisensi']) && $row['tipe_lisensi'] == 'Personal') ? 'checked' : '' ?>>
-                <label for="tipe_p">Personal</label>
-                <input type="radio" id="tipe_b" name="tipe_lisensi" value="Bisnis" <?= (isset($row['tipe_lisensi']) && $row['tipe_lisensi'] == 'Bisnis') ? 'checked' : '' ?>>
-                <label for="tipe_b">Bisnis</label>
+                <div>
+                    <label for="harga">Harga Total (Rp)</label>
+                    <input type="number" id="harga" name="harga" value="<?= isset($row['harga']) ? $row['harga'] : '' ?>">
+                </div>
+                <div>
+                    <label for="metode_pembayaran">Metode Pembayaran</label>
+                    <input type="text" id="metode_pembayaran" name="metode_pembayaran" value="<?= isset($row['metode_pembayaran']) ? $row['metode_pembayaran'] : '' ?>">
+                </div>
+                <div class="full-width">
+                    <label for="status_pembayaran">Status Pembayaran</label>
+                    <select id="status_pembayaran" name="status_pembayaran">
+                        <option value="Lunas" <?= (isset($row['status_pembayaran']) && $row['status_pembayaran'] == 'Lunas') ? 'selected' : '' ?>>Lunas</option>
+                        <option value="Pending" <?= (isset($row['status_pembayaran']) && $row['status_pembayaran'] == 'Pending') ? 'selected' : '' ?>>Pending</option>
+                        <option value="Batal" <?= (isset($row['status_pembayaran']) && $row['status_pembayaran'] == 'Batal') ? 'selected' : '' ?>>Batal</option>
+                    </select>
+                </div>
             </div>
-
-            <label for="status_pembayaran">Status Pembayaran:</label>
-            <select id="status_pembayaran" name="status_pembayaran">
-                <option value="Lunas" <?= (isset($row['status_pembayaran']) && $row['status_pembayaran'] == 'Lunas') ? 'selected' : '' ?>>Lunas</option>
-                <option value="Pending" <?= (isset($row['status_pembayaran']) && $row['status_pembayaran'] == 'Pending') ? 'selected' : '' ?>>Pending</option>
-                <option value="Batal" <?= (isset($row['status_pembayaran']) && $row['status_pembayaran'] == 'Batal') ? 'selected' : '' ?>>Batal</option>
-            </select>
-
-            <label for="fitur_tambahan">Fitur Tambahan:</label>
-            <input type="text" id="fitur_tambahan" name="fitur_tambahan" value="<?= isset($row['fitur_tambahan']) ? $row['fitur_tambahan'] : '' ?>">
-
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email" value="<?= isset($row['email']) ? $row['email'] : '' ?>">
-
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" placeholder="Isi hanya jika ingin mengubah password">
 
             <input type="submit" value="💾 Simpan Perubahan">
         </form>

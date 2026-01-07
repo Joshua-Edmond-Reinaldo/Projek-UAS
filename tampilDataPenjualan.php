@@ -7,7 +7,7 @@ if (!isset($_SESSION['username'])) {
 
 // Proteksi: Redirect customer ke dashboard mereka sendiri
 if (!isset($_SESSION['level']) || $_SESSION['level'] != 'admin') {
-    header("location:dashboardCustomer.php");
+    header("location:index.php");
     exit;
 }
 
@@ -238,6 +238,7 @@ $isAdmin = (isset($_SESSION['level']) && $_SESSION['level'] == 'admin');
         .btn-print { background: linear-gradient(135deg, #bd93f9, #ff79c6); color: #0f0f23; margin-left: 15px; }
         .btn-edit { background: linear-gradient(135deg, #50fa7b, #40e66b); color: #0f0f23; padding: 8px 16px; border-radius: 6px; font-size: 0.85em; }
         .btn-delete { background: linear-gradient(135deg, #ff5555, #ff4444); color: #ffffff; padding: 8px 16px; border-radius: 6px; font-size: 0.85em; }
+        .btn-verify { background: linear-gradient(135deg, #f1c40f, #f39c12); color: #0f0f23; padding: 8px 16px; border-radius: 6px; font-size: 0.85em; margin-right: 5px; }
 
         .search-container { margin-bottom: 25px; display: flex; justify-content: center; gap: 15px; }
         .search-input { padding: 14px 20px; width: 100%; max-width: 400px; background: #2d2d42; border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 12px; color: #f8f8f2; }
@@ -265,12 +266,20 @@ $isAdmin = (isset($_SESSION['level']) && $_SESSION['level'] == 'admin');
     <div class="container">
         <h1>Data Penjualan</h1>
         
-        <div class="search-container">
-            <form action="" method="GET" style="display: flex; gap: 10px; width: 100%; justify-content: center; flex-wrap: wrap;">
-                <input type="text" name="cari" class="search-input" placeholder="Cari Username, Pembeli, atau Software..." value="<?= isset($_GET['cari']) ? htmlspecialchars($_GET['cari']) : '' ?>">
-                <button type="submit" class="btn-search">🔍 Cari</button>
-                <?php if(isset($_GET['cari'])): ?>
-                    <a href="tampilDataPenjualan.php" class="btn-reset">✖ Reset</a>
+        <div class="search-container" style="padding: 20px; background: rgba(0,0,0,0.1); border-radius: 12px;">
+            <form action="" method="GET" style="display: flex; gap: 15px; width: 100%; justify-content: center; align-items: center; flex-wrap: wrap;">
+                <input type="text" name="cari" class="search-input" placeholder="Cari data..." value="<?= isset($_GET['cari']) ? htmlspecialchars($_GET['cari']) : '' ?>">
+                
+                <label for="start_date" style="color: #bd93f9;">Dari:</label>
+                <input type="date" id="start_date" name="start_date" class="search-input" style="width: auto;" value="<?= isset($_GET['start_date']) ? htmlspecialchars($_GET['start_date']) : '' ?>">
+                
+                <label for="end_date" style="color: #bd93f9;">Sampai:</label>
+                <input type="date" id="end_date" name="end_date" class="search-input" style="width: auto;" value="<?= isset($_GET['end_date']) ? htmlspecialchars($_GET['end_date']) : '' ?>">
+
+                <button type="submit" class="btn-search">🔍 Filter</button>
+                
+                <?php if(!empty($_GET['cari']) || !empty($_GET['start_date']) || !empty($_GET['end_date'])): ?>
+                    <a href="tampilDataPenjualan.php" class="btn-reset">✖ Reset Filter</a>
                 <?php endif; ?>
             </form>
         </div>
@@ -283,12 +292,32 @@ $isAdmin = (isset($_SESSION['level']) && $_SESSION['level'] == 'admin');
             $halamanAktif = (isset($_GET['halaman']) && (int)$_GET['halaman'] > 0) ? (int)$_GET['halaman'] : 1;
             $awalData = ($jumlahDataPerHalaman * $halamanAktif) - $jumlahDataPerHalaman;
 
-            if (isset($_GET['cari'])) {
+            $where_clauses = [];
+            $url_params = [];
+
+            // Filter by search keyword
+            if (isset($_GET['cari']) && !empty($_GET['cari'])) {
                 $cari = mysqli_real_escape_string($conn, $_GET['cari']);
-                $where = "WHERE username LIKE '%$cari%' OR nama_pembeli LIKE '%$cari%' OR nama_software LIKE '%$cari%'";
-            } else {
-                $where = "";
+                $where_clauses[] = "(username LIKE '%$cari%' OR nama_pembeli LIKE '%$cari%' OR nama_software LIKE '%$cari%')";
+                $url_params['cari'] = $_GET['cari'];
             }
+
+            // Filter by start date
+            if (isset($_GET['start_date']) && !empty($_GET['start_date'])) {
+                $start_date = mysqli_real_escape_string($conn, $_GET['start_date']);
+                $where_clauses[] = "tanggal_transaksi >= '$start_date'";
+                $url_params['start_date'] = $_GET['start_date'];
+            }
+
+            // Filter by end date
+            if (isset($_GET['end_date']) && !empty($_GET['end_date'])) {
+                $end_date = mysqli_real_escape_string($conn, $_GET['end_date']);
+                $where_clauses[] = "tanggal_transaksi <= '$end_date'";
+                $url_params['end_date'] = $_GET['end_date'];
+            }
+
+            $where = !empty($where_clauses) ? "WHERE " . implode(" AND ", $where_clauses) : "";
+            $param_string = http_build_query($url_params);
 
             $sql_total = "SELECT COUNT(*) as total FROM table_penjualan $where";
             $result_total = $conn->query($sql_total);
@@ -320,6 +349,9 @@ $isAdmin = (isset($_SESSION['level']) && $_SESSION['level'] == 'admin');
                 
                 // Hanya Admin yang boleh Edit dan Hapus
                 if ($isAdmin) {
+                    if ($row['status_pembayaran'] == 'Pending' && !empty($row['bukti_pembayaran'])) {
+                        echo "<a href='verifikasiPembayaran.php?id={$row['id']}' class='btn-verify'>🔍 Cek Bukti</a> ";
+                    }
                     echo "<a href='koreksiDataPenjualan.php?kode={$row['id']}' class='btn-edit'>Edit</a> ";
                     echo "<a href='hapusDataPenjualan.php?kode={$row['id']}' onclick=\"return confirm('Yakin hapus transaksi ini?')\" class='btn-delete'>Hapus</a>";
                 } else {
@@ -332,7 +364,7 @@ $isAdmin = (isset($_SESSION['level']) && $_SESSION['level'] == 'admin');
                 }
                 echo "</tbody></table>";
             } else {
-                echo "<div class='no-data'>📭 Belum ada data penjualan yang tersimpan.</div>";
+                echo "<div class='no-data'>📭 Data penjualan tidak ditemukan untuk filter yang dipilih.</div>";
             }
             ?>
         </div>
@@ -341,15 +373,15 @@ $isAdmin = (isset($_SESSION['level']) && $_SESSION['level'] == 'admin');
         <?php if ($jumlahHalaman > 1): ?>
         <div class="pagination">
             <?php if ($halamanAktif > 1): ?>
-                <a href="?halaman=<?= $halamanAktif - 1 ?><?= isset($_GET['cari']) ? '&cari='.$_GET['cari'] : '' ?>">&laquo; Prev</a>
+                <a href="?halaman=<?= $halamanAktif - 1 ?>&<?= $param_string ?>">&laquo; Prev</a>
             <?php endif; ?>
             
             <?php for ($i = 1; $i <= $jumlahHalaman; $i++): ?>
-                <a href="?halaman=<?= $i ?><?= isset($_GET['cari']) ? '&cari='.$_GET['cari'] : '' ?>" class="<?= ($i == $halamanAktif) ? 'active' : '' ?>"><?= $i ?></a>
+                <a href="?halaman=<?= $i ?>&<?= $param_string ?>" class="<?= ($i == $halamanAktif) ? 'active' : '' ?>"><?= $i ?></a>
             <?php endfor; ?>
 
             <?php if ($halamanAktif < $jumlahHalaman): ?>
-                <a href="?halaman=<?= $halamanAktif + 1 ?><?= isset($_GET['cari']) ? '&cari='.$_GET['cari'] : '' ?>">Next &raquo;</a>
+                <a href="?halaman=<?= $halamanAktif + 1 ?>&<?= $param_string ?>">Next &raquo;</a>
             <?php endif; ?>
         </div>
         <?php endif; ?>
@@ -358,7 +390,6 @@ $isAdmin = (isset($_SESSION['level']) && $_SESSION['level'] == 'admin');
             <a href="dashboard.php" class="btn btn-dashboard">🏠 Dashboard</a>
             <a href="tambahDataPenjualan.php" class="btn">➕ Input Transaksi Baru</a>
             <a href="cetakDataPenjualanPdf.php" target="_blank" class="btn btn-print">🖨️ Cetak PDF</a>
-            <a href="logout.php" class="btn btn-logout">🚪 Logout</a>
         </div>
     </div>
 </body>

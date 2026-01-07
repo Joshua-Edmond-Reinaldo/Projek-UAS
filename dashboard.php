@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION['username'])) {
-    header("location:login.php");
+    header("location:index.php");
     exit;
 }
 
@@ -15,9 +15,9 @@ require "koneksi.php";
 
 // Ambil data user untuk foto profil
 $username = $_SESSION['username'];
-$sql_user = "SELECT profile_picture FROM table_penjualan WHERE username='$username'";
+$sql_user = "SELECT profile_picture FROM table_penjualan WHERE username='$username' AND profile_picture IS NOT NULL ORDER BY id DESC LIMIT 1";
 $res_user = $conn->query($sql_user);
-$user_data = $res_user->fetch_assoc();
+$user_data = ($res_user && $res_user->num_rows > 0) ? $res_user->fetch_assoc() : null;
 
 // 1. Total Pendapatan (Hanya yang Lunas)
 $sql_revenue = "SELECT SUM(harga) as total FROM table_penjualan WHERE status_pembayaran = 'Lunas'";
@@ -108,12 +108,23 @@ while ($row_m = $res_monthly->fetch_assoc()) {
 
         body {
             font-family: 'JetBrains Mono', monospace;
-            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 25%, #16213e 50%, #0f0f23 75%, #1a1a2e 100%);
+            background: #0f0f23;
             background-attachment: fixed;
             color: #e2e8f0;
             margin: 0;
             padding: 20px;
             min-height: 100vh;
+        }
+
+        /* Background Asset */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: url('asset/background.jpg') no-repeat center center/cover;
+            opacity: 0.3;
+            z-index: -2;
+            filter: blur(4px);
         }
 
         .container {
@@ -149,10 +160,11 @@ while ($row_m = $res_monthly->fetch_assoc()) {
         }
 
         .stat-card {
-            background: linear-gradient(145deg, #1e1e2e, #2a2a3e);
+            background: rgba(30, 30, 46, 0.7);
+            backdrop-filter: blur(10px);
             padding: 25px;
             border-radius: 16px;
-            border: 1px solid rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 10px 20px rgba(0,0,0,0.2);
             text-align: center;
             transition: transform 0.3s, border-color 0.3s;
@@ -206,10 +218,11 @@ while ($row_m = $res_monthly->fetch_assoc()) {
         }
 
         .chart-section {
-            background: linear-gradient(145deg, #1e1e2e, #2a2a3e);
+            background: rgba(30, 30, 46, 0.7);
+            backdrop-filter: blur(10px);
             padding: 25px;
             border-radius: 16px;
-            border: 1px solid rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             box-shadow: 0 10px 20px rgba(0,0,0,0.2);
             flex: 1;
             min-height: 400px;
@@ -258,10 +271,11 @@ while ($row_m = $res_monthly->fetch_assoc()) {
 
         /* Recent Transactions Table */
         .recent-section {
-            background: linear-gradient(145deg, #1e1e2e, #2a2a3e);
+            background: rgba(30, 30, 46, 0.7);
+            backdrop-filter: blur(10px);
             padding: 30px;
             border-radius: 20px;
-            border: 1px solid rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             animation: fadeInUp 0.8s ease-out 0.2s backwards;
         }
 
@@ -319,77 +333,162 @@ while ($row_m = $res_monthly->fetch_assoc()) {
         .btn-primary { background: linear-gradient(135deg, #50fa7b, #40e66b); color: #0f0f23; }
         .btn-primary:hover { box-shadow: 0 0 15px rgba(80, 250, 123, 0.4); }
 
-        .btn-secondary { background: #2d2d42; color: #e2e8f0; border: 1px solid rgba(99, 102, 241, 0.5); }
+        .btn-secondary { background: rgba(45, 45, 66, 0.8); color: #e2e8f0; border: 1px solid rgba(99, 102, 241, 0.5); }
         .btn-secondary:hover { background: #3a3a52; border-color: #bd93f9; }
 
         .btn-danger { background: linear-gradient(135deg, #ff5555, #ff4444); color: white; }
 
-        /* Light Mode Styles */
-        body.light-mode {
-            background: #f0f2f5;
-            color: #1a202c;
-        }
-        body.light-mode .stat-card,
-        body.light-mode .chart-section,
-        body.light-mode .recent-section {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
-        body.light-mode .stat-number { color: #2d3748; }
-        body.light-mode .stat-label { color: #718096; }
-        body.light-mode h2 { color: #2d3748; border-bottom-color: #e2e8f0; }
-        body.light-mode table th { color: #4a5568; }
-        body.light-mode table td { color: #4a5568; border-bottom-color: #edf2f7; }
-        body.light-mode tr:nth-child(even) { background: #f7fafc; }
-        body.light-mode tr:hover { background: #edf2f7; box-shadow: none; transform: none; }
-        body.light-mode .btn-secondary { background: #edf2f7; color: #4a5568; border-color: #cbd5e0; }
-        body.light-mode .btn-secondary:hover { background: #e2e8f0; border-color: #a0aec0; }
-        
-        /* Toggle Button */
-        .theme-toggle {
+        /* Navbar Styles */
+        .navbar {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 255, 255, 0.1);
+            top: 0;
+            width: 100%;
+            background: rgba(30, 30, 46, 0.9);
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #fff;
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            z-index: 1000;
+            padding: 0;
+        }
+
+        .navbar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 15px 20px;
+            width: 100%;
+            position: relative;
+        }
+
+        .navbar .logo {
+            color: #50fa7b;
+            text-decoration: none;
+            font-size: 1.5em;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(80, 250, 123, 0.5);
+        }
+
+        .navbar .hamburger {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            margin-left: 15px;
+        }
+
+        .navbar .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: #e2e8f0;
+            margin: 3px 0;
+            transition: 0.3s;
+        }
+
+        .navbar .nav-links {
+            display: flex;
+            position: absolute;
+            top: 100%;
+            right: 20px;
+            width: 250px;
+            background: rgba(30, 30, 46, 0.95);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            flex-direction: column;
+            padding: 1rem;
+            gap: 0.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-20px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .navbar .nav-links.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .navbar .nav-links a {
+            color: #e2e8f0;
+            text-decoration: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            transition: 0.3s;
+            font-weight: 500;
+            display: block;
+        }
+
+        .navbar .nav-links a:hover {
+            background: rgba(80, 250, 123, 0.1);
+            color: #50fa7b;
+        }
+
+        .navbar .nav-links .btn-login {
+            background: linear-gradient(135deg, #50fa7b, #40e66b);
+            color: #0f0f23;
+            font-weight: bold;
+        }
+
+        .navbar .nav-links .btn-login:hover {
+            box-shadow: 0 0 15px rgba(80, 250, 123, 0.5);
+        }
+
+        .navbar-right {
             display: flex;
             align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 1000;
-            transition: all 0.3s ease;
-            font-size: 1.2em;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        body.light-mode .theme-toggle {
-            background: #fff;
-            border-color: #e2e8f0;
-            color: #f6e05e;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+
+        /* Adjust body padding for fixed navbar */
+        body {
+            padding-top: 80px;
         }
-        .theme-toggle:hover { transform: scale(1.1); }
-        
+
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        /* Custom Button Colors */
+        .btn-coupon { background: linear-gradient(135deg, #8be9fd, #50fa7b); color: #0f0f23; }
+        .btn-add-user { background: linear-gradient(135deg, #8be9fd, #bd93f9); color: #0f0f23; }
+        .btn-manage-user { background: linear-gradient(135deg, #50fa7b, #40e66b); color: #0f0f23; }
+        .btn-log { background: linear-gradient(135deg, #ff79c6, #ff5555); color: #0f0f23; }
+        .btn-settings { background: linear-gradient(135deg, #6272a4, #44475a); color: #f8f8f2; }
     </style>
 </head>
 <body>
 
-<button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙</button>
+    <nav class="navbar">
+        <div class="container">
+            <a href="dashboard.php" class="logo">Dashboard Admin</a>
+            <div class="navbar-right">
+                <a href="logout.php" class="btn-login" style="padding: 8px 16px; border-radius: 8px; text-decoration: none; color: white; font-weight: bold;">Logout</a>
+                <div class="hamburger" onclick="toggleMenu()">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+            <div class="nav-links">
+                <a href="tampilDataPenjualan.php">Data Penjualan</a>
+                <a href="tambahDataPenjualan.php">Input Transaksi</a>
+                <a href="tampilDataKupon.php">Kupon & Diskon</a>
+                <a href="tampilDataUser.php">Kelola User</a>
+                <a href="tampilLogAktivitas.php">Log Aktivitas</a>
+                <a href="laporanBulanan.php">Laporan</a>
+                <a href="settings.php">Settings</a>
+            </div>
+        </div>
+    </nav>
 
 <div class="container">
     <h1>Dashboard Penjualan</h1>
     <div class="welcome-text">
         <?php 
-        $pp = !empty($user_data['profile_picture']) ? $user_data['profile_picture'] : 'https://ui-avatars.com/api/?name='.urlencode($username).'&background=50fa7b&color=0f0f23';
+        $pp = !empty($user_data) && !empty($user_data['profile_picture']) ? $user_data['profile_picture'] : 'https://ui-avatars.com/api/?name='.urlencode($username).'&background=50fa7b&color=0f0f23';
         ?>
         <img src="<?= $pp ?>" alt="Profile" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #50fa7b;">
         <span>Selamat datang kembali, <strong><?= htmlspecialchars($_SESSION['username']) ?></strong>! Berikut ringkasan performa penjualan Anda.</span>
@@ -413,9 +512,10 @@ while ($row_m = $res_monthly->fetch_assoc()) {
         </div>
         <div class="stat-card">
             <span class="icon">🔑</span>
-            <div class="stat-label">Lisensi Terjual</div>
+            <div class="stat-label">Produk Terjual</div>
             <div class="stat-number"><?= $total_license ?></div>
         </div>
+
     </div>
 
     <div class="charts-row">
@@ -466,23 +566,17 @@ while ($row_m = $res_monthly->fetch_assoc()) {
                 <?php endwhile; ?>
             </tbody>
         </table>
-        <div class="btn-group">
-            <a href="tampilDataPenjualan.php" class="btn btn-primary">Lihat Semua Data</a>
-            <a href="tambahDataPenjualan.php" class="btn btn-secondary">Input Transaksi</a>
-            
-            <?php if(isset($_SESSION['level']) && $_SESSION['level'] == 'admin'): ?>
-                <a href="registrasiUser.php" class="btn btn-secondary" style="background: linear-gradient(135deg, #8be9fd, #bd93f9); color: #0f0f23;">👤 Tambah User</a>
-                <a href="tampilLogAktivitas.php" class="btn btn-secondary" style="background: linear-gradient(135deg, #ff79c6, #ff5555); color: #0f0f23;">📜 Log Aktivitas</a>
-                <a href="laporanBulanan.php" class="btn btn-secondary" style="background: linear-gradient(135deg, #f1c40f, #f39c12); color: #0f0f23;">📊 Laporan Laba Rugi</a>
-            <?php endif; ?>
-
-            <a href="settings.php" class="btn btn-secondary" style="background: linear-gradient(135deg, #6272a4, #44475a); color: #f8f8f2;">⚙️ Settings</a>
-            <a href="logout.php" class="btn btn-danger">Logout</a>
-        </div>
     </div>
 </div>
 
 <script>
+    function toggleMenu() {
+        const hamburger = document.querySelector('.hamburger');
+        const navLinks = document.querySelector('.nav-links');
+        hamburger.classList.toggle('active');
+        navLinks.classList.toggle('active');
+    }
+
     const ctx = document.getElementById('salesChart').getContext('2d');
     const salesChart = new Chart(ctx, {
         type: 'line',
@@ -576,60 +670,6 @@ while ($row_m = $res_monthly->fetch_assoc()) {
             }
         }
     });
-
-    // Theme Toggle Logic
-    const body = document.body;
-    const themeBtn = document.getElementById('themeBtn');
-    
-    if (localStorage.getItem('theme') === 'light') {
-        enableLightMode();
-    }
-
-    function toggleTheme() {
-        if (body.classList.contains('light-mode')) {
-            disableLightMode();
-        } else {
-            enableLightMode();
-        }
-    }
-
-    function enableLightMode() {
-        body.classList.add('light-mode');
-        themeBtn.innerHTML = '☀️';
-        localStorage.setItem('theme', 'light');
-        updateCharts('light');
-    }
-
-    function disableLightMode() {
-        body.classList.remove('light-mode');
-        themeBtn.innerHTML = '🌙';
-        localStorage.setItem('theme', 'dark');
-        updateCharts('dark');
-    }
-
-    function updateCharts(theme) {
-        const textColor = theme === 'light' ? '#4a5568' : '#bd93f9';
-        const gridColor = theme === 'light' ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.05)';
-        const legendColor = theme === 'light' ? '#2d3748' : '#e2e8f0';
-
-        salesChart.options.scales.x.ticks.color = textColor;
-        salesChart.options.scales.x.grid.color = gridColor;
-        salesChart.options.scales.y.ticks.color = textColor;
-        salesChart.options.scales.y.grid.color = gridColor;
-        salesChart.options.plugins.legend.labels.color = legendColor;
-        salesChart.update();
-
-        pieChart.options.plugins.legend.labels.color = legendColor;
-        pieChart.data.datasets[0].borderColor = theme === 'light' ? '#ffffff' : '#1e1e2e';
-        pieChart.update();
-
-        monthlySalesChart.options.plugins.title.color = legendColor;
-        monthlySalesChart.options.scales.x.ticks.color = textColor;
-        monthlySalesChart.options.scales.x.grid.color = gridColor;
-        monthlySalesChart.options.scales.y.ticks.color = textColor;
-        monthlySalesChart.options.scales.y.grid.color = gridColor;
-        monthlySalesChart.update();
-    }
 </script>
 
 </body>

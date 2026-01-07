@@ -20,29 +20,70 @@ if ($res_user && $res_user->num_rows > 0) {
     die("User data not found.");
 }
 
-// Ambil data foto profil dari table_penjualan (jika ada)
-$sql_pic = "SELECT profile_picture FROM table_penjualan WHERE username='$username' LIMIT 1";
-$res_pic = $conn->query($sql_pic);
-$user_pic_data = ($res_pic && $res_pic->num_rows > 0) ? $res_pic->fetch_assoc() : ['profile_picture' => ''];
+// Ambil data profil tambahan (Foto, Nama, Alamat, HP) dari table_penjualan (jika ada)
+// Kita ambil record terakhir untuk mendapatkan data profil terbaru jika ada banyak transaksi
+$sql_profile = "SELECT profile_picture, nama_pembeli, alamat, no_hp FROM table_penjualan WHERE username='$username' ORDER BY id DESC LIMIT 1";
+$res_profile = $conn->query($sql_profile);
+$user_profile_data = ($res_profile && $res_profile->num_rows > 0) ? $res_profile->fetch_assoc() : ['profile_picture' => '', 'nama_pembeli' => '', 'alamat' => '', 'no_hp' => ''];
 
 // Handle Update Email
 if (isset($_POST['update_email'])) {
-    $new_email = mysqli_real_escape_string($conn, $_POST['email']);
-    
+    $new_email = trim($_POST['email']);
+
     if (!filter_var($new_email, FILTER_VALIDATE_EMAIL)) {
         $msg = "Format email tidak valid!";
         $msg_type = "error";
     } else {
-        $sql_update = "UPDATE table_user SET email='$new_email' WHERE username='$username'";
-        if ($conn->query($sql_update)) {
+        $stmt = $conn->prepare("UPDATE table_user SET email=? WHERE username=?");
+        $stmt->bind_param("ss", $new_email, $username);
+        if ($stmt->execute()) {
             $msg = "Email berhasil diperbarui!";
             $msg_type = "success";
             $user_data['email'] = $new_email;
+            
+            // Update juga email di table_penjualan agar sinkron
+            $stmt_sales = $conn->prepare("UPDATE table_penjualan SET email=? WHERE username=?");
+            $stmt_sales->bind_param("ss", $new_email, $username);
+            $stmt_sales->execute();
+            $stmt_sales->close();
         } else {
-            $msg = "Gagal mengupdate email: " . $conn->error;
+            $msg = "Gagal mengupdate email: " . $stmt->error;
             $msg_type = "error";
         }
+        $stmt->close();
     }
+}
+
+// Handle Update Biodata (Nama, Alamat, No HP)
+if (isset($_POST['update_biodata'])) {
+    $nama = trim($_POST['nama_pembeli']);
+    $alamat = trim($_POST['alamat']);
+    $hp = trim($_POST['no_hp']);
+
+    // Cek apakah user ada di table_penjualan
+    $check_sales = $conn->query("SELECT id FROM table_penjualan WHERE username='$username'");
+    
+    if ($check_sales->num_rows > 0) {
+        // Update semua record transaksi user ini agar data konsisten
+        $stmt_bio = $conn->prepare("UPDATE table_penjualan SET nama_pembeli=?, alamat=?, no_hp=? WHERE username=?");
+        $stmt_bio->bind_param("ssss", $nama, $alamat, $hp, $username);
+    } else {
+        // Buat record dummy jika user belum pernah transaksi (agar data tersimpan)
+        $stmt_bio = $conn->prepare("INSERT INTO table_penjualan (username, nama_pembeli, alamat, no_hp, jumlah_lisensi, nama_software, tanggal_transaksi, harga, metode_pembayaran, tipe_lisensi, status_pembayaran, fitur_tambahan, email, password) VALUES (?, ?, ?, ?, 0, '-', CURDATE(), 0, '-', '-', '-', '-', '-', '')");
+        $stmt_bio->bind_param("ssss", $username, $nama, $alamat, $hp);
+    }
+
+    if ($stmt_bio->execute()) {
+        $msg = "Biodata berhasil diperbarui!";
+        $msg_type = "success";
+        $user_profile_data['nama_pembeli'] = $nama;
+        $user_profile_data['alamat'] = $alamat;
+        $user_profile_data['no_hp'] = $hp;
+    } else {
+        $msg = "Gagal mengupdate biodata: " . $stmt_bio->error;
+        $msg_type = "error";
+    }
+    $stmt_bio->close();
 }
 
 // Handle Ganti Password
@@ -52,8 +93,8 @@ if (isset($_POST['change_password'])) {
     $confirm_pass = $_POST['confirm_password'];
 
     $db_pass = $user_data['password'];
-    // Cek password (support hash atau plain text sesuai sistem yang ada)
-    $is_valid = (password_verify($old_pass, $db_pass) || $old_pass == $db_pass);
+    // Cek password (plain text)
+    $is_valid = ($old_pass == $db_pass);
 
     if (!$is_valid) {
         $msg = "Password lama salah!";
@@ -65,18 +106,20 @@ if (isset($_POST['change_password'])) {
         $msg = "Konfirmasi password tidak cocok!";
         $msg_type = "error";
     } else {
-        // Simpan password baru (Plain text sesuai konsistensi file lain)
-        $new_pass_safe = mysqli_real_escape_string($conn, $new_pass);
-        $sql_pw = "UPDATE table_user SET password='$new_pass_safe' WHERE username='$username'";
-        
-        if ($conn->query($sql_pw)) {
+        // Hash password baru
+        $new_pass_hash = password_hash($new_pass, PASSWORD_DEFAULT);
+        $stmt_pw = $conn->prepare("UPDATE table_user SET password=? WHERE username=?");
+        $stmt_pw->bind_param("ss", $new_pass_hash, $username);
+
+        if ($stmt_pw->execute()) {
             $msg = "Password berhasil diubah!";
             $msg_type = "success";
-            $user_data['password'] = $new_pass;
+            $user_data['password'] = $new_pass_hash;
         } else {
-            $msg = "Gagal mengubah password: " . $conn->error;
+            $msg = "Gagal mengubah password: " . $stmt_pw->error;
             $msg_type = "error";
         }
+        $stmt_pw->close();
     }
 }
 
@@ -120,7 +163,7 @@ if (isset($_POST['upload_picture'])) {
             }
 
             if ($conn->query($sql_pic_update)) {
-                $msg = "Foto profil berhasil diupload!"; $msg_type = "success"; $user_pic_data['profile_picture'] = $pic_path;
+                $msg = "Foto profil berhasil diupload!"; $msg_type = "success"; $user_profile_data['profile_picture'] = $pic_path;
             } else { $msg = "Database error: " . $conn->error; $msg_type = "error"; }
         } else { $msg = "Maaf, terjadi error saat mengupload file."; $msg_type = "error"; }
     }
@@ -170,8 +213,8 @@ if (isset($_POST['upload_picture'])) {
 
         .form-section h2 { margin-top: 0; color: #bd93f9; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 15px; margin-bottom: 20px; font-size: 1.5em; }
         label { display: block; margin-bottom: 8px; color: #ffb86c; font-weight: 600; font-size: 0.9em; }
-        input[type="text"], input[type="email"], input[type="password"] { width: 100%; padding: 12px 16px; background: #2d2d42; border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 10px; color: #f8f8f2; font-family: inherit; margin-bottom: 20px; outline: none; transition: 0.3s; }
-        input:focus { border-color: #50fa7b; box-shadow: 0 0 8px rgba(80, 250, 123, 0.3); }
+        input[type="text"], input[type="email"], input[type="password"], textarea { width: 100%; padding: 12px 16px; background: #2d2d42; border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 10px; color: #f8f8f2; font-family: inherit; margin-bottom: 20px; outline: none; transition: 0.3s; }
+        input:focus, textarea:focus { border-color: #50fa7b; box-shadow: 0 0 8px rgba(80, 250, 123, 0.3); }
         
         .btn { padding: 12px 24px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; font-family: inherit; text-transform: uppercase; transition: 0.3s; display: inline-block; text-decoration: none; }
         .btn-save { background: linear-gradient(135deg, #50fa7b, #40e66b); color: #0f0f23; width: 100%; }
@@ -186,7 +229,10 @@ if (isset($_POST['upload_picture'])) {
 </head>
 <body>
 <div class="container">
-    <a href="dashboard.php" class="btn btn-back">← Kembali ke Dashboard</a>
+    <?php 
+    $dashboard_link = (isset($_SESSION['level']) && $_SESSION['level'] == 'admin') ? 'dashboard.php' : 'dashboardCustomer.php';
+    ?>
+    <a href="<?= $dashboard_link ?>" class="btn btn-back">← Kembali ke Dashboard</a>
     <h1>⚙️ Pengaturan Akun</h1>
     <?php if ($msg): ?>
         <div class="alert alert-<?= $msg_type ?>"><?= $msg ?></div>
@@ -196,7 +242,7 @@ if (isset($_POST['upload_picture'])) {
         <h2>🖼️ Foto Profil</h2>
         <div style="text-align: center; margin-bottom: 20px;">
             <?php 
-            $pp = !empty($user_pic_data['profile_picture']) ? $user_pic_data['profile_picture'] : 'https://ui-avatars.com/api/?name='.urlencode($username).'&background=50fa7b&color=0f0f23';
+            $pp = !empty($user_profile_data['profile_picture']) ? $user_profile_data['profile_picture'] : 'https://ui-avatars.com/api/?name='.urlencode($username).'&background=50fa7b&color=0f0f23';
             ?>
             <img src="<?= $pp ?>" alt="Profile Picture" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #50fa7b; box-shadow: 0 0 15px rgba(80, 250, 123, 0.3);">
         </div>
@@ -204,6 +250,22 @@ if (isset($_POST['upload_picture'])) {
             <label>Upload Foto Baru (Max 2MB)</label>
             <input type="file" name="profile_pic" required style="background: #2d2d42; color: #f8f8f2; padding: 10px; border-radius: 10px; width: 100%; border: 1px solid rgba(99, 102, 241, 0.3);">
             <button type="submit" name="upload_picture" class="btn btn-save" style="margin-top: 15px;">Upload Foto</button>
+        </form>
+    </div>
+
+    <div class="form-section">
+        <h2>📝 Biodata Diri</h2>
+        <form method="POST">
+            <label>Nama Lengkap</label>
+            <input type="text" name="nama_pembeli" value="<?= htmlspecialchars($user_profile_data['nama_pembeli']) ?>" placeholder="Nama Lengkap" required>
+            
+            <label>Nomor HP</label>
+            <input type="text" name="no_hp" value="<?= htmlspecialchars($user_profile_data['no_hp']) ?>" placeholder="08xxxxxxxxxx" required>
+            
+            <label>Alamat Lengkap</label>
+            <textarea name="alamat" rows="3" placeholder="Alamat tempat tinggal..."><?= htmlspecialchars($user_profile_data['alamat']) ?></textarea>
+            
+            <button type="submit" name="update_biodata" class="btn btn-save">Simpan Biodata</button>
         </form>
     </div>
 

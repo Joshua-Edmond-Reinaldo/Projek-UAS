@@ -1,61 +1,35 @@
 <?php
 session_start();
-if (isset($_SESSION['username'])) {
-    header("location:dashboard.php");
-    exit;
-}
-
 require "koneksi.php";
+// require "config_mailer.php"; // Dinonaktifkan karena tidak ada notifikasi email
 
-$step = 1; // 1: Verifikasi, 2: Reset Password, 3: Sukses
 $error = "";
 $success = "";
-$found_id = "";
 
-// Tahap 1: Verifikasi Username dan Email
-if (isset($_POST['verify_user'])) {
-    $username = mysqli_real_escape_string($conn, $_POST['username']);
+if (isset($_POST['send_link'])) {
     $email = mysqli_real_escape_string($conn, $_POST['email']);
 
-    $sql = "SELECT id FROM table_user WHERE username='$username' AND email='$email'";
-    $result = $conn->query($sql);
+    $stmt = $conn->prepare("SELECT id FROM table_user WHERE email = ?");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-    if ($result && $result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        $found_id = $row['id'];
-        $step = 2; // Lanjut ke reset password
+    if ($result->num_rows > 0) {
+        // Email ditemukan, buat token
+        $token = bin2hex(random_bytes(32));
+        $expires = date("Y-m-d H:i:s", time() + 3600); // Token berlaku 1 jam
+
+        $stmt_update = $conn->prepare("UPDATE table_user SET reset_token = ?, reset_token_expires = ? WHERE email = ?");
+        $stmt_update->bind_param("sss", $token, $expires, $email);
+        $stmt_update->execute();
+
+        // Buat link reset
+        $reset_link = "http://" . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']) . "/reset_password.php?token=$token";
+        
+        $success = "Link reset password Anda adalah: <br><a href='$reset_link' style='word-wrap:break-word; color: #50fa7b; text-decoration:underline;'>$reset_link</a><br><br><small>Silakan salin dan buka link di atas.</small>";
     } else {
-        $error = "Data tidak ditemukan! Pastikan Username dan Email sesuai dengan yang terdaftar.";
-    }
-}
-
-// Tahap 2: Simpan Password Baru
-if (isset($_POST['reset_pass'])) {
-    $id = (int)$_POST['user_id'];
-    $pass1 = $_POST['pass1'];
-    $pass2 = $_POST['pass2'];
-
-    if ($pass1 === $pass2) {
-        if (strlen($pass1) < 6) {
-            $error = "Password minimal 6 karakter!";
-            $step = 2;
-            $found_id = $id;
-        } else {
-            // Simpan sebagai plain text (sesuai permintaan sebelumnya)
-            $pass_final = mysqli_real_escape_string($conn, $pass1);
-            
-            $sql_update = "UPDATE table_user SET password='$pass_final' WHERE id=$id";
-            
-            if ($conn->query($sql_update)) {
-                $step = 3; // Sukses
-            } else {
-                $error = "Gagal mengupdate password: " . $conn->error;
-            }
-        }
-    } else {
-        $error = "Konfirmasi password tidak cocok!";
-        $step = 2;
-        $found_id = $id;
+        // Jika email tidak ditemukan, berikan pesan error.
+        $error = "Email tidak ditemukan dalam sistem.";
     }
 }
 ?>
@@ -104,13 +78,14 @@ if (isset($_POST['reset_pass'])) {
 
         h2 {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 15px;
             background: linear-gradient(135deg, #ffb86c, #ff5555);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             font-size: 1.8em;
         }
+        p { color: #a0a0b0; text-align: center; margin-bottom: 30px; font-size: 0.9em; }
 
         label {
             display: block;
@@ -120,7 +95,7 @@ if (isset($_POST['reset_pass'])) {
             font-size: 0.9em;
         }
 
-        input[type="text"], input[type="email"], input[type="password"] {
+        input[type="email"] {
             width: 100%;
             padding: 14px 16px;
             background: #333642;
@@ -157,21 +132,15 @@ if (isset($_POST['reset_pass'])) {
             box-shadow: 0 8px 20px rgba(255, 85, 85, 0.3);
         }
 
-        .error {
-            background: rgba(255, 85, 85, 0.1);
-            color: #ff5555;
-            padding: 10px;
+        .alert {
+            padding: 15px;
             border-radius: 8px;
             text-align: center;
             margin-bottom: 20px;
-            border: 1px solid rgba(255, 85, 85, 0.2);
+            border: 1px solid;
         }
-
-        .success-msg {
-            text-align: center;
-            color: #50fa7b;
-            margin-bottom: 20px;
-        }
+        .alert-success { background: rgba(80, 250, 123, 0.1); color: #50fa7b; border-color: rgba(80, 250, 123, 0.2); }
+        .alert-error { background: rgba(255, 85, 85, 0.1); color: #ff5555; border-color: rgba(255, 85, 85, 0.2); }
 
         .back-link {
             display: block;
@@ -187,43 +156,21 @@ if (isset($_POST['reset_pass'])) {
 <body>
 
 <div class="container">
-    <?php if ($step == 1): ?>
-        <h2>🔐 Reset Password</h2>
-        <?php if ($error) echo "<div class='error'>$error</div>"; ?>
-        <form method="POST">
-            <label>Username</label>
-            <input type="text" name="username" placeholder="Masukkan Username" required>
-            
-            <label>Email Terdaftar</label>
-            <input type="email" name="email" placeholder="Masukkan Email" required>
-            
-            <button type="submit" name="verify_user">Verifikasi</button>
-        </form>
+    <h2>Lupa Password</h2>
+    <p>Masukkan alamat email Anda. Kami akan mengirimkan link untuk mereset password.</p>
 
-    <?php elseif ($step == 2): ?>
-        <h2>🔑 Password Baru</h2>
-        <?php if ($error) echo "<div class='error'>$error</div>"; ?>
-        <form method="POST">
-            <input type="hidden" name="user_id" value="<?= $found_id ?>">
-            
-            <label>Password Baru</label>
-            <input type="password" name="pass1" placeholder="Minimal 6 karakter" required>
-            
-            <label>Konfirmasi Password</label>
-            <input type="password" name="pass2" placeholder="Ulangi password" required>
-            
-            <button type="submit" name="reset_pass">Simpan Password</button>
-        </form>
+    <?php if ($error) echo "<div class='alert alert-error'>$error</div>"; ?>
+    <?php if ($success) echo "<div class='alert alert-success'>$success</div>"; ?>
 
-    <?php elseif ($step == 3): ?>
-        <h2>✅ Berhasil!</h2>
-        <p class="success-msg">Password Anda telah berhasil diperbarui.</p>
-        <a href="login.php"><button>Login Sekarang</button></a>
+    <?php if (!$success): ?>
+    <form method="POST">
+        <label>Email Terdaftar</label>
+        <input type="email" name="email" placeholder="Masukkan Email Anda" required>
+        <button type="submit" name="send_link">Kirim Link Reset</button>
+    </form>
     <?php endif; ?>
 
-    <?php if ($step != 3): ?>
-        <a href="login.php" class="back-link">Kembali ke Login</a>
-    <?php endif; ?>
+    <a href="index.php" class="back-link">Kembali ke Login</a>
 </div>
 
 </body>

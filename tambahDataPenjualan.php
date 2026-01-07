@@ -40,54 +40,6 @@
             z-index: -1;
         }
 
-        /* Falling Code Effect */
-        .falling-code {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -2;
-            overflow: hidden;
-        }
-
-        .code-column {
-            position: absolute;
-            top: -100px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 14px;
-            color: rgba(80, 250, 123, 0.3);
-            white-space: nowrap;
-            animation: fall linear infinite;
-        }
-
-        .code-column:nth-child(odd) {
-            animation-duration: 8s;
-        }
-
-        .code-column:nth-child(even) {
-            animation-duration: 12s;
-            animation-delay: 2s;
-        }
-
-        @keyframes fall {
-            0% {
-                transform: translateY(-100px);
-                opacity: 0;
-            }
-            10% {
-                opacity: 1;
-            }
-            90% {
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(100vh);
-                opacity: 0;
-            }
-        }
-
         .container {
             background: linear-gradient(145deg, #1e1e2e, #2a2a3e);
             padding: 40px;
@@ -97,7 +49,7 @@
                 0 0 0 1px rgba(255, 255, 255, 0.1),
                 inset 0 1px 0 rgba(255, 255, 255, 0.1);
             width: 100%;
-            max-width: 650px;
+            max-width: 900px;
             border: 1px solid rgba(99, 102, 241, 0.2);
             backdrop-filter: blur(10px);
             position: relative;
@@ -116,26 +68,18 @@
         }
 
         h2 {
-            text-align: center;
             background: linear-gradient(135deg, #50fa7b, #ffb86c);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            margin-bottom: 30px;
             font-size: 28px;
             font-weight: 700;
             text-shadow: 0 0 20px rgba(80, 250, 123, 0.3);
             letter-spacing: 1px;
         }
 
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
         label {
-            margin-bottom: 8px;
+            margin-bottom: 5px;
             color: #ffb86c;
             font-weight: 600;
             font-size: 14px;
@@ -187,7 +131,7 @@
         }
 
         .radio-group, .checkbox-group {
-            margin-bottom: 0;
+            margin-bottom: 20px;
             background: linear-gradient(145deg, #1a1a2e, #2a2a3e);
             padding: 20px;
             border-radius: 12px;
@@ -234,6 +178,7 @@
             letter-spacing: 1px;
             position: relative;
             overflow: hidden;
+            margin-top: 20px;
         }
 
         input[type=submit]::before {
@@ -259,27 +204,6 @@
 
         input[type=submit]:active {
             transform: translateY(0);
-        }
-
-        .code-snippet {
-            background: linear-gradient(145deg, #0f0f23, #1a1a2e);
-            padding: 16px 20px;
-            border-radius: 12px;
-            margin-bottom: 30px;
-            font-size: 13px;
-            color: #50fa7b;
-            border-left: 4px solid #50fa7b;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
-            position: relative;
-        }
-
-        .code-snippet::before {
-            content: '⚡';
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            color: #ffb86c;
-            font-size: 14px;
         }
 
         @keyframes slideIn {
@@ -341,91 +265,153 @@
         ::-webkit-scrollbar-thumb:hover {
             background: linear-gradient(135deg, #40e66b, #ff9f43);
         }
+
+        /* Grid Layout */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .full-width { grid-column: span 2; }
+        .section-title {
+            grid-column: span 2;
+            color: #50fa7b;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 10px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        @media (max-width: 768px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .full-width { grid-column: span 1; }
+            .section-title { grid-column: span 1; }
+        }
+
+        /* Header Row Style */
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 20px;
+        }
+        
+        .header-row h2 {
+            margin: 0;
+        }
+
+        .btn-back {
+            background: rgba(45, 45, 66, 0.8);
+            color: #e2e8f0;
+            text-decoration: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: bold;
+            border: 1px solid rgba(99, 102, 241, 0.5);
+            transition: all 0.3s;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-back:hover {
+            background: #3a3a52;
+            border-color: #bd93f9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
     </style>
 </head>
 <body>
-    <div class="falling-code">
-        <div class="code-column" style="left: 10%;">function(){</div>
-        <div class="code-column" style="left: 20%; animation-delay: 1s;">var data = [];</div>
-        <div class="code-column" style="left: 30%; animation-delay: 2s;">if(condition){</div>
-        <div class="code-column" style="left: 40%; animation-delay: 0.5s;">console.log();</div>
-        <div class="code-column" style="left: 50%; animation-delay: 1.5s;">return true;</div>
-        <div class="code-column" style="left: 60%; animation-delay: 2.5s;">for(let i=0;</div>
-        <div class="code-column" style="left: 70%; animation-delay: 0.8s;">async function</div>
-        <div class="code-column" style="left: 80%; animation-delay: 1.8s;">try{ }catch{}</div>
-        <div class="code-column" style="left: 90%; animation-delay: 2.2s;">export default</div>
-    </div>
     <div class="container">
-        <div class="code-snippet">
-            System: New Transaction Entry
+        <div class="header-row">
+            <h2>Form Transaksi Penjualan</h2>
+            <a href="dashboard.php" class="btn-back">🏠 Dashboard</a>
         </div>
         <form action="simpanDataPenjualan.php" method="POST">
+            <div class="form-grid">
+                <!-- Pelanggan -->
+                <h3 class="section-title">👤 Data Pelanggan</h3>
+                <div>
+                    <label>Nama Pembeli</label>
+                    <input type="text" id="nama_pembeli" name="nama_pembeli" placeholder="e.g., John Doe" onblur="cekNama()" required>
+                </div>
+                <div>
+                    <label>Email</label>
+                    <input type="email" name="email" placeholder="e.g., john@example.com" onblur="cekEmail()">
+                </div>
+                <div>
+                    <label>No HP</label>
+                    <input type="text" name="no_hp" id="no_hp" placeholder="e.g., 08123456789" onblur="cekNoHp()" required>
+                </div>
+                <div class="full-width">
+                    <label>Alamat Tagihan</label>
+                    <textarea name="alamat" rows="2" placeholder="Alamat lengkap..." required></textarea>
+                </div>
 
-            <h2>Form Transaksi Penjualan</h2>
+                <!-- Transaksi -->
+                <h3 class="section-title">📦 Detail Produk</h3>
+                <div>
+                    <label>Nama Software</label>
+                    <input type="text" name="nama_software" placeholder="e.g., Antivirus Pro 2025" required>
+                </div>
+                <div>
+                    <label>Jumlah Lisensi</label>
+                    <input type="number" id="jumlah_lisensi" name="jumlah_lisensi" placeholder="e.g., 5" required>
+                </div>
+                <div>
+                    <label>Tanggal Transaksi</label>
+                    <input type="date" name="tanggal_transaksi" required>
+                </div>
+                <div>
+                    <label>Tipe Lisensi</label>
+                    <div class="radio-group" style="padding: 10px;">
+                        <label><input type="radio" name="tipe_lisensi" value="Personal" required> Personal</label>
+                        <label><input type="radio" name="tipe_lisensi" value="Bisnis"> Bisnis</label>
+                    </div>
+                </div>
+                <div class="full-width">
+                    <label>Fitur Tambahan</label>
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" name="fitur_tambahan[]" value="Support 24/7"> Support 24/7</label>
+                        <label><input type="checkbox" name="fitur_tambahan[]" value="Cloud Storage"> Cloud Storage</label>
+                        <label><input type="checkbox" name="fitur_tambahan[]" value="Backup Otomatis"> Backup Otomatis</label>
+                        <label><input type="checkbox" name="fitur_tambahan[]" value="Training User"> Training User</label>
+                        <label><input type="checkbox" name="fitur_tambahan[]" value="Custom Domain"> Custom Domain</label>
+                        <label><input type="checkbox" name="fitur_tambahan[]" value="API Access"> API Access</label>
+                    </div>
+                </div>
 
-        <label>Username :</label>
-        <input type="text" name="username" id="username" placeholder="e.g., user123" onblur="cekUsername()" required>
-
-        <label>Nama Pembeli :</label>
-        <input type="text" id="nama_pembeli" name="nama_pembeli" placeholder="e.g., John Doe" onblur="cekNama()" required>
-
-        <label>Jumlah Lisensi :</label>
-        <input type="number" id="jumlah_lisensi" name="jumlah_lisensi" placeholder="e.g., 5" required>
-
-        <label>Nama Software :</label>
-        <input type="text" name="nama_software" placeholder="e.g., Antivirus Pro 2025" required>
-
-        <label>Tanggal Transaksi :</label>
-        <input type="date" name="tanggal_transaksi" required>
-
-        <label>Harga Total (Rp) :</label>
-        <input type="number" name="harga" placeholder="e.g., 500000" required>
-
-        <label>Alamat Tagihan :</label>
-        <textarea name="alamat" rows="3" placeholder="Alamat lengkap..." required></textarea>
-
-        <label>Metode Pembayaran :</label>
-        <select name="metode_pembayaran" required>
-            <option value="">Pilih Metode</option>
-            <option value="Transfer Bank">Transfer Bank</option>
-            <option value="Kartu Kredit">Kartu Kredit</option>
-            <option value="E-Wallet">E-Wallet</option>
-            <option value="QRIS">QRIS</option>
-        </select>
-
-        <label>No HP :</label>
-        <input type="text" name="no_hp" placeholder="e.g., 08123456789" onblur="cekNoHp()" required>
-
-            <label>Tipe Lisensi :</label>
-            <div class="radio-group">
-                <label><input type="radio" name="tipe_lisensi" value="Personal" required> Personal</label>
-                <label><input type="radio" name="tipe_lisensi" value="Bisnis"> Bisnis</label>
+                <!-- Pembayaran & Keamanan -->
+                <h3 class="section-title">💳 Pembayaran & Akun</h3>
+                <div>
+                    <label>Harga Total (Rp)</label>
+                    <input type="number" name="harga" placeholder="e.g., 500000" required>
+                </div>
+                <div>
+                    <label>Metode Pembayaran</label>
+                    <select name="metode_pembayaran" required>
+                        <option value="">Pilih Metode</option>
+                        <option value="Transfer Bank">Transfer Bank</option>
+                        <option value="Kartu Kredit">Kartu Kredit</option>
+                        <option value="E-Wallet">E-Wallet</option>
+                        <option value="QRIS">QRIS</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Status Pembayaran</label>
+                    <select name="status_pembayaran" required>
+                        <option value="Lunas">Lunas</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Batal">Batal</option>
+                    </select>
+                </div>
             </div>
-
-            <label>Status Pembayaran :</label>
-            <select name="status_pembayaran" required>
-                <option value="Lunas">Lunas</option>
-                <option value="Pending">Pending</option>
-                <option value="Batal">Batal</option>
-            </select>
-
-        <label>Fitur Tambahan :</label>
-        <div class="checkbox-group">
-            <label><input type="checkbox" name="fitur_tambahan[]" value="Support 24/7"> Support 24/7</label>
-            <label><input type="checkbox" name="fitur_tambahan[]" value="Cloud Storage"> Cloud Storage</label>
-            <label><input type="checkbox" name="fitur_tambahan[]" value="Backup Otomatis"> Backup Otomatis</label>
-            <label><input type="checkbox" name="fitur_tambahan[]" value="Training User"> Training User</label><br>
-            <label><input type="checkbox" name="fitur_tambahan[]" value="Custom Domain"> Custom Domain</label>
-            <label><input type="checkbox" name="fitur_tambahan[]" value="API Access"> API Access</label>
-        </div>
-        <label>Email :</label>
-        <input type="email" name="email" placeholder="e.g., john@example.com" onblur="cekEmail()">
-
-        <label>Password :</label>
-        <div style="position: relative;">
-            <input type="password" name="password" id="passInput" placeholder="Enter your password (minimal 6 karakter)" onblur="cekPassword()" required style="padding-right: 40px;">
-            <span id="toggleInputPass" style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); cursor: pointer;">👁️</span>
-        </div>
 
         <input type="submit" value="Simpan Transaksi">
     </form>
@@ -441,15 +427,6 @@
                     document.getElementById("nama_pembeli").value = "";
                 } else {
                     // confirm("Apakah nama '" + nama + "' sudah benar?");
-                }
-            }
-        }
-
-        function cekUsername() {
-            var username = document.getElementById("username").value;
-            if (username !== "") {
-                if (username.length < 3) {
-                    alert("Username minimal 3 karakter!");
                 }
             }
         }
@@ -478,26 +455,6 @@
             }
         }
 
-        function cekPassword() {
-            var pass = document.querySelector("input[name='password']").value;
-            if (pass !== "") {
-                if (pass.length < 6) {
-                    alert("Password minimal 6 karakter!");
-                    document.querySelector("input[name='password']").value = "";
-                } else {
-                    // confirm("Apakah password '" + pass + "' sudah benar?");
-                }
-            }
-        }
-
-        const toggleInputPass = document.querySelector('#toggleInputPass');
-        const passwordInput = document.querySelector('#passInput');
-
-        toggleInputPass.addEventListener('click', function (e) {
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
-            this.textContent = type === 'password' ? '👁️' : '🙈';
-        });
     </script>
 
 </body>

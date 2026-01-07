@@ -16,7 +16,7 @@ function validasiJumlah($jumlah) {
     return true;
 }
 
-$username = bersihkan($_POST['username'] ?? '-');
+$username = !empty($_POST['username']) ? bersihkan($_POST['username']) : null;
 $nama_pembeli = bersihkan($_POST['nama_pembeli'] ?? '-');
 $jumlah_lisensi = bersihkan($_POST['jumlah_lisensi'] ?? '-');
 $nama_software = bersihkan($_POST['nama_software'] ?? '-');
@@ -29,8 +29,7 @@ $no_hp = bersihkan($_POST['no_hp'] ?? '-');
 $tipe_lisensi = isset($_POST['tipe_lisensi']) ? bersihkan($_POST['tipe_lisensi']) : "-";
 $status_pembayaran = isset($_POST['status_pembayaran']) ? bersihkan($_POST['status_pembayaran']) : "-";
 $email = bersihkan($_POST['email'] ?? '-');
-// Password disimpan plain text sesuai permintaan sistem yang ada
-$password = $_POST['password'] ?? '-';
+$password = $_POST['password'] ?? null;
 
 $fitur_list = [];
 if (!empty($_POST['fitur_tambahan'])) {
@@ -65,82 +64,45 @@ if ($cek_jumlah !== true) {
 
 include 'koneksi.php';
 
-// --- Validasi Username Ganda (Duplikat) ---
-$cek_user_sql = "SELECT username FROM table_penjualan WHERE username = ?";
-$stmt_cek = $conn->prepare($cek_user_sql);
-if (!$stmt_cek) {
-    die("Query Cek Username Error: " . $conn->error);
-}
-$stmt_cek->bind_param("s", $username);
-$stmt_cek->execute();
-$stmt_cek->store_result();
-
-if ($stmt_cek->num_rows > 0) {
-    die("<div style='color:red; text-align:center; padding:50px; font-family:sans-serif;'>
-            <h3>Gagal: Username $username sudah terdaftar!</h3>
-            <a href='tambahDataPenjualan.php'>Kembali ke Form</a>
-         </div>");
-}
-$stmt_cek->close();
-
-// --- Validasi Username di table_user ---
-$cek_user_tbl = "SELECT id FROM table_user WHERE username = '$username'";
-$res_user_tbl = $conn->query($cek_user_tbl);
-if ($res_user_tbl->num_rows > 0) {
-    die("<div style='color:red; text-align:center; padding:50px; font-family:sans-serif;'>
-            <h3>Gagal: Username $username sudah digunakan oleh user lain (Admin/Staff)!</h3>
-            <a href='tambahDataPenjualan.php'>Kembali ke Form</a>
-         </div>");
-}
-
-// --- Cek Stok Barang ---
-$cek_stok_sql = "SELECT jumlah_stok FROM table_stok WHERE nama_software = ?";
-$stmt_stok = $conn->prepare($cek_stok_sql);
-if ($stmt_stok) {
-    $stmt_stok->bind_param("s", $nama_software);
-    $stmt_stok->execute();
-    $res_stok = $stmt_stok->get_result();
-    if ($res_stok->num_rows > 0) {
-        $row_stok = $res_stok->fetch_assoc();
-        if ($row_stok['jumlah_stok'] < $jumlah_lisensi) {
-             die("<div style='color:red; text-align:center; padding:50px; font-family:sans-serif;'>
-                    <h3>Gagal: Stok tidak mencukupi! Stok saat ini: " . $row_stok['jumlah_stok'] . "</h3>
-                    <a href='tambahDataPenjualan.php'>Kembali ke Form</a>
-                 </div>");
-        }
+// --- Validasi Username Ganda (Duplikat) di table_user ---
+if ($username) {
+    $cek_user_sql = "SELECT id FROM table_user WHERE username = ?";
+    $stmt_cek = $conn->prepare($cek_user_sql);
+    if (!$stmt_cek) {
+        die("Query Cek Username Error: " . $conn->error);
     }
-    $stmt_stok->close();
+    $stmt_cek->bind_param("s", $username);
+    $stmt_cek->execute();
+    $stmt_cek->store_result();
+    if ($stmt_cek->num_rows > 0) {
+        die("<div style='color:red; text-align:center; padding:50px; font-family:sans-serif;'>
+                <h3>Gagal: Username '$username' sudah terdaftar! Silakan gunakan username lain.</h3>
+                <a href='tambahDataPenjualan.php'>Kembali ke Form</a>
+             </div>");
+    }
+    $stmt_cek->close();
 }
 
 // Insert ke table_penjualan
-$sql = "INSERT INTO table_penjualan (username, nama_pembeli, jumlah_lisensi, nama_software, tanggal_transaksi, harga, alamat, metode_pembayaran, no_hp, tipe_lisensi, status_pembayaran, fitur_tambahan, email, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+$sql = "INSERT INTO table_penjualan (username, nama_pembeli, jumlah_lisensi, nama_software, tanggal_transaksi, harga, alamat, metode_pembayaran, no_hp, tipe_lisensi, status_pembayaran, fitur_tambahan, email) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 $stmt = $conn->prepare($sql);
 if (!$stmt) {
     die("Query Error: " . $conn->error);
 }
 // Binding parameters
-$stmt->bind_param("ssississssssss", $username, $nama_pembeli, $jumlah_lisensi, $nama_software, $tanggal_transaksi, $harga, $alamat, $metode_pembayaran, $no_hp, $tipe_lisensi, $status_pembayaran, $fitur_output, $email, $password);
+$stmt->bind_param("ssisdssssssss", $username, $nama_pembeli, $jumlah_lisensi, $nama_software, $tanggal_transaksi, $harga, $alamat, $metode_pembayaran, $no_hp, $tipe_lisensi, $status_pembayaran, $fitur_output, $email);
 
 if ($stmt->execute()) {
-    // Insert juga ke table_user agar bisa login
-    $sql_user_insert = "INSERT INTO table_user (username, password, email, level) VALUES ('$username', '$password', '$email', 'user')";
-    $conn->query($sql_user_insert);
+    // Insert juga ke table_user agar bisa login (Hanya jika username & password diisi)
+    if ($username && $password) {
+        $sql_user_insert = "INSERT INTO table_user (username, password, email, level) VALUES ('$username', '$password', '$email', 'user')";
+        $conn->query($sql_user_insert);
+    }
 
     // Catat Log
     $logger = isset($_SESSION['username']) ? $_SESSION['username'] : 'System';
     catatLog($conn, $logger, 'Input Penjualan', "Menambahkan transaksi: $nama_pembeli - $nama_software");
-
-    // Kurangi Stok hanya jika status pembayaran Lunas
-    if ($status_pembayaran == 'Lunas') {
-        $update_stok_sql = "UPDATE table_stok SET jumlah_stok = jumlah_stok - ? WHERE nama_software = ?";
-        $stmt_update_stok = $conn->prepare($update_stok_sql);
-        if ($stmt_update_stok) {
-            $stmt_update_stok->bind_param("is", $jumlah_lisensi, $nama_software);
-            $stmt_update_stok->execute();
-            $stmt_update_stok->close();
-        }
-    }
 } else {
     die("<div style='color:red; text-align:center; padding:50px; font-family:sans-serif;'>
             <h3>Gagal menyimpan data: " . $stmt->error . "</h3>

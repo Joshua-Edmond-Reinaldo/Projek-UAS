@@ -37,6 +37,10 @@ if (!$found) {
 }
 
 // Redirect kembali ke index dengan pesan sukses (opsional bisa pakai flash message)
-header("Location: index.php");
-exit;
+if (isset($_GET['redirect']) && $_GET['redirect'] == 'dashboard') {
+    // Jika dari dashboard, arahkan ke keranjang agar user sadar item masuk, atau kembali ke dashboard
+    header("Location: keranjang.php"); 
+} else {
+    header("Location: index.php");
+}
 ?>

@@ -1,14 +1,21 @@
 <?php
-$servername = "localhost"; 
-$username = "root";        
-$password = "";            
-$dbname = "penjualan_software"; // Pastikan nama database ini sudah dibuat di phpMyAdmin
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
-$conn = new mysqli($servername, $username, $password, $dbname);
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "database_toko"; // Pastikan nama database ini sudah dibuat di phpMyAdmin
+
+$conn = new mysqli($servername, $username, $password);
 
 if ($conn->connect_error) {
-    die("Koneksi gagal: " . $conn->connect_error); 
+    die("Koneksi gagal: " . $conn->connect_error);
 }
+
+$conn->query("CREATE DATABASE IF NOT EXISTS $dbname");
+$conn->select_db($dbname);
 
 // Fungsi Catat Log Aktivitas
 function catatLog($conn, $username, $action, $details) {

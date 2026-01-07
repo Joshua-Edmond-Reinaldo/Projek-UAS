@@ -1,16 +1,8 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1
--- https://www.phpmyadmin.net/
---
--- Host: 127.0.0.1
--- Waktu pembuatan: 20 Des 2025 pada 12.10
--- Versi server: 10.4.32-MariaDB
--- Versi PHP: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
-
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -20,61 +12,8 @@ SET time_zone = "+00:00";
 --
 -- Database: `database_toko`
 --
-CREATE DATABASE IF NOT EXISTS `penjualan_software` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-USE `penjualan_software`;
-
--- --------------------------------------------------------
-
---
--- Struktur dari tabel `table_pembelian`
---
-
-CREATE TABLE `table_pembelian` (
-  `id` int(11) NOT NULL,
-  `nama_supplier` varchar(100) NOT NULL,
-  `nama_software` varchar(100) NOT NULL,
-  `jumlah_lisensi` int(11) NOT NULL,
-  `tanggal_pembelian` date NOT NULL,
-  `harga_beli` decimal(15,2) NOT NULL,
-  `keterangan` text DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Struktur dari tabel `table_penjualan`
---
-
-CREATE TABLE `table_penjualan` (
-  `id` int(11) NOT NULL,
-  `username` varchar(50) NOT NULL,
-  `nama_pembeli` varchar(100) NOT NULL,
-  `jumlah_lisensi` int(11) NOT NULL,
-  `nama_software` varchar(100) NOT NULL,
-  `tanggal_transaksi` date NOT NULL,
-  `harga` decimal(15,2) NOT NULL,
-  `alamat` text NOT NULL,
-  `metode_pembayaran` varchar(50) NOT NULL,
-  `no_hp` varchar(20) NOT NULL,
-  `tipe_lisensi` varchar(20) NOT NULL,
-  `status_pembayaran` varchar(20) NOT NULL,
-  `fitur_tambahan` text NOT NULL,
-  `email` varchar(100) NOT NULL,
-  `password` varchar(255) NOT NULL,
-  `profile_picture` varchar(255) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Struktur dari tabel `table_stok`
---
-
-CREATE TABLE `table_stok` (
-  `id` int(11) NOT NULL,
-  `nama_software` varchar(100) NOT NULL,
-  `jumlah_stok` int(11) NOT NULL DEFAULT 0
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE DATABASE IF NOT EXISTS `database_toko` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE `database_toko`;
 
 -- --------------------------------------------------------
 
@@ -83,20 +22,48 @@ CREATE TABLE `table_stok` (
 --
 
 CREATE TABLE `table_user` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `username` varchar(50) NOT NULL,
   `password` varchar(255) NOT NULL,
   `email` varchar(100) NOT NULL,
-  `level` enum('admin','user') NOT NULL DEFAULT 'user'
+  `level` enum('admin','user') NOT NULL DEFAULT 'user',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Indexes for dumped tables
+-- Dumping data for table `table_user`
 --
-ALTER TABLE `table_pembelian` ADD PRIMARY KEY (`id`);
-ALTER TABLE `table_penjualan` ADD PRIMARY KEY (`id`), ADD UNIQUE KEY `username` (`username`);
-ALTER TABLE `table_stok` ADD PRIMARY KEY (`id`), ADD UNIQUE KEY `nama_software` (`nama_software`);
-ALTER TABLE `table_user` ADD PRIMARY KEY (`id`), ADD UNIQUE KEY `username` (`username`);
+
+INSERT INTO `table_user` (`username`, `password`, `email`, `level`) VALUES
+('admin', 'admin123', 'admin@toko.com', 'admin'),
+('staff', 'admin123', 'staff@toko.com', 'user');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `table_penjualan`
+--
+
+CREATE TABLE `table_penjualan` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(50) DEFAULT NULL,
+  `nama_pembeli` varchar(100) DEFAULT NULL,
+  `jumlah_lisensi` int(11) DEFAULT NULL,
+  `nama_software` varchar(100) DEFAULT NULL,
+  `tanggal_transaksi` date DEFAULT NULL,
+  `harga` decimal(15,2) DEFAULT NULL,
+  `alamat` text DEFAULT NULL,
+  `metode_pembayaran` varchar(50) DEFAULT NULL,
+  `no_hp` varchar(20) DEFAULT NULL,
+  `tipe_lisensi` varchar(50) DEFAULT NULL,
+  `status_pembayaran` enum('Lunas','Pending','Batal') DEFAULT NULL,
+  `fitur_tambahan` text DEFAULT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `bukti_pembayaran` varchar(255) DEFAULT NULL,
+  `profile_picture` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -113,31 +80,67 @@ CREATE TABLE `table_logs` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- AUTO_INCREMENT for dumped tables
---
-ALTER TABLE `table_pembelian` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-ALTER TABLE `table_penjualan` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-ALTER TABLE `table_stok` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-ALTER TABLE `table_user` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+-- --------------------------------------------------------
 
 --
--- Dumping data for table `table_user`
+-- Struktur dari tabel `table_coupons`
 --
 
-INSERT INTO `table_user` (`username`, `password`, `email`, `level`) VALUES
-('admin', 'admin123', 'admin@toko.com', 'admin'),
-('staff', 'staff123', 'staff@toko.com', 'user');
+CREATE TABLE `table_coupons` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `code` varchar(50) NOT NULL,
+  `type` enum('percentage','fixed') NOT NULL DEFAULT 'fixed',
+  `value` decimal(12,2) NOT NULL,
+  `valid_until` date DEFAULT NULL,
+  `usage_limit` int(11) DEFAULT 0,
+  `used_count` int(11) DEFAULT 0,
+  `limit_per_user` tinyint(1) DEFAULT 0,
+  `apply_to_all` tinyint(1) DEFAULT 1,
+  `apply_rule` varchar(50) DEFAULT 'all',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `code` (`code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
 
 --
--- Dumping data for table `table_stok`
+-- Struktur dari tabel `table_coupon_usage`
 --
 
-INSERT INTO `table_stok` (`nama_software`, `jumlah_stok`) VALUES
-('Antivirus Pro 2025', 100),
-('Video Editor X', 50),
-('Cloud ERP System', 20),
-('Dev Tools Ultimate', 75);
+CREATE TABLE `table_coupon_usage` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `coupon_id` int(11) NOT NULL,
+  `username` varchar(50) NOT NULL,
+  `used_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `table_coupon_products`
+--
+
+CREATE TABLE `table_coupon_products` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `coupon_id` int(11) NOT NULL,
+  `product_name` varchar(100) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `table_coupon_categories`
+--
+
+CREATE TABLE `table_coupon_categories` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `coupon_id` int(11) NOT NULL,
+  `category_name` varchar(100) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 COMMIT;
 

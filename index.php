@@ -1,32 +1,6 @@
 <?php
 session_start();
-// Data Produk (Simulasi Database)
-$products = [
-    [
-        'name' => 'Antivirus Pro 2025',
-        'desc' => 'Perlindungan maksimal dari ancaman siber terbaru.',
-        'price' => 250000,
-        'features' => ['Real-time Protection', 'Anti-Ransomware', 'VPN Included']
-    ],
-    [
-        'name' => 'Video Editor X',
-        'desc' => 'Edit video profesional dengan mudah dan cepat.',
-        'price' => 750000,
-        'features' => ['4K Rendering', 'AI Effects', 'Stock Library']
-    ],
-    [
-        'name' => 'Cloud ERP System',
-        'desc' => 'Kelola bisnis Anda dari mana saja secara real-time.',
-        'price' => 1500000,
-        'features' => ['Finance & HR Modul', 'Unlimited Users', 'Daily Backup']
-    ],
-    [
-        'name' => 'Dev Tools Ultimate',
-        'desc' => 'Paket lengkap untuk developer full-stack.',
-        'price' => 500000,
-        'features' => ['IDE License', 'Database Tools', 'API Tester']
-    ]
-];
+require_once "data_produk.php";
 
 // Logika Pencarian
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
@@ -43,11 +17,7 @@ if ($search) {
     $filtered_products = $products;
 }
 
-// Hitung item di keranjang
-$cart_count = 0;
-if (isset($_SESSION['cart'])) {
-    foreach($_SESSION['cart'] as $item) { $cart_count += $item['qty']; }
-}
+
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -58,500 +28,846 @@ if (isset($_SESSION['cart'])) {
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
 
-        * { box-sizing: border-box; }
+        .btn-hero-cta {
+            display: inline-block;
+            margin-top: 2rem;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #50fa7b, #40e66b);
+            color: #0f0f23;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            animation: fadeInUp 1s ease-out 0.4s both;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
             font-family: 'JetBrains Mono', monospace;
-            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 25%, #16213e 50%, #0f0f23 75%, #1a1a2e 100%);
-            background-attachment: fixed;
+            background: #0f0f23;
             color: #e2e8f0;
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
+            line-height: 1.6;
             overflow-x: hidden;
-            scroll-behavior: smooth;
+        }
+
+        /* Background Image dengan Animasi & Transparansi */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: url('asset/background.jpg') no-repeat center center/cover;
+            opacity: 0.4; /* Mengatur transparansi background */
+            z-index: -2;
+            filter: blur(3px);
+            animation: bgZoom 30s infinite alternate;
+        }
+
+        @keyframes bgZoom {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
         }
 
         /* Navbar */
         .navbar {
-            background: rgba(15, 15, 35, 0.9);
-            backdrop-filter: blur(10px);
-            padding: 20px 40px;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(15, 15, 35, 0.95);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.3);
+            padding: 1rem 0;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar .container {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid rgba(80, 250, 123, 0.2);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
         }
 
         .logo {
-            font-size: 1.5em;
+            font-size: 1.8rem;
             font-weight: 700;
             color: #50fa7b;
             text-decoration: none;
-            text-shadow: 0 0 10px rgba(80, 250, 123, 0.3);
+            background: linear-gradient(135deg, #50fa7b, #ffb86c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+        }
+
+        .hamburger {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            gap: 4px;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            margin-left: 15px;
+            position: relative;
+        }
+
+        .hamburger:hover {
+            background: rgba(80, 250, 123, 0.1);
+            transform: scale(1.1);
+        }
+
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: #e2e8f0;
+            transition: all 0.3s ease;
+            transform-origin: center;
+        }
+
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(7px, -6px);
+        }
+
+        .nav-links {
+            display: flex;
+            position: absolute;
+            top: 100%;
+            right: 20px;
+            width: 250px;
+            background: rgba(15, 15, 35, 0.95);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 12px;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.5rem;
+            padding: 1rem 0;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            z-index: 1001;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-20px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .nav-links.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
         }
 
         .nav-links a {
             color: #e2e8f0;
             text-decoration: none;
-            margin-left: 30px;
             font-weight: 500;
-            transition: color 0.3s;
+            transition: color 0.3s ease;
+            position: relative;
+            padding: 0.5rem 1rem;
+            text-align: left;
+            border-radius: 8px;
         }
 
-        .nav-links a:hover { color: #50fa7b; }
+        .nav-links a:hover {
+            color: #50fa7b;
+            background: rgba(80, 250, 123, 0.1);
+        }
+
+        .btn-hero-cta {
+            display: inline-block;
+            margin-top: 2rem;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #50fa7b, #40e66b);
+            color: #0f0f23;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            animation: fadeInUp 1s ease-out 0.4s both;
+        }
+
+        .btn-hero-cta:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(80, 250, 123, 0.4);
+        }
+
         .btn-login {
-            padding: 8px 20px;
-            border: 1px solid #bd93f9;
-            border-radius: 8px;
-            color: #bd93f9 !important;
-        }
-        .btn-login:hover {
-            background: #bd93f9;
+            background: linear-gradient(135deg, #bd93f9, #ff79c6);
             color: #0f0f23 !important;
-            box-shadow: 0 0 15px rgba(189, 147, 249, 0.4);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 0.5rem;
         }
-        
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(189, 147, 249, 0.3);
+        }
+
         .cart-icon {
             position: relative;
-            margin-left: 20px;
-            font-size: 1.2em;
+            font-size: 1.5rem;
+            color: #e2e8f0;
+            text-decoration: none;
+            transition: color 0.3s ease;
+            margin-left: auto;
         }
+
+        .cart-icon:hover {
+            color: #50fa7b;
+        }
+
         .cart-badge {
             position: absolute;
-            top: -8px; right: -10px;
-            background: #ff5555; color: white;
-            font-size: 0.7em; padding: 2px 6px;
+            top: -8px;
+            right: -8px;
+            background: #ff5555;
+            color: white;
             border-radius: 50%;
+            padding: 0.2rem 0.5rem;
+            font-size: 0.8rem;
+            font-weight: bold;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* Hero Section */
         .hero {
+            background: transparent;
+            padding: 120px 20px 80px;
             text-align: center;
-            padding: 100px 20px;
-            background: radial-gradient(circle at center, rgba(80, 250, 123, 0.1) 0%, transparent 70%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(circle at 20% 80%, rgba(80, 250, 123, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 184, 108, 0.1) 0%, transparent 50%);
+            pointer-events: none;
         }
 
         .hero h1 {
-            font-size: 3.5em;
-            margin-bottom: 20px;
-            background: linear-gradient(135deg, #50fa7b, #8be9fd);
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #50fa7b, #ffb86c, #bd93f9);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 30px rgba(80, 250, 123, 0.2);
+            background-clip: text;
+            animation: fadeInUp 1s ease-out;
         }
 
         .hero p {
-            font-size: 1.2em;
-            color: #bd93f9;
+            font-size: 1.2rem;
+            color: #a0a0b0;
             max-width: 600px;
-            margin: 0 auto 40px;
+            margin: 0 auto;
+            animation: fadeInUp 1s ease-out 0.2s both;
         }
 
-        /* Products Grid */
+        /* Container */
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 40px 20px;
+            padding: 80px 20px;
         }
 
         .section-title {
+            font-size: 2.5rem;
             text-align: center;
-            font-size: 2em;
-            margin-bottom: 50px;
-            color: #f8f8f2;
-            position: relative;
-            display: inline-block;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        
-        .section-title::after {
-            content: '';
-            display: block;
-            width: 60%;
-            height: 4px;
-            background: #ff79c6;
-            margin: 10px auto 0;
-            border-radius: 2px;
-            box-shadow: 0 0 10px #ff79c6;
+            margin-bottom: 3rem;
+            background: linear-gradient(135deg, #50fa7b, #ffb86c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 600;
         }
 
+        /* Search */
+        .search-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 3rem;
+        }
+
+        .search-input {
+            padding: 1rem 1.5rem;
+            border: 2px solid rgba(99, 102, 241, 0.3);
+            border-radius: 12px 0 0 12px;
+            background: rgba(26, 26, 46, 0.6);
+            color: #e2e8f0;
+            font-size: 1rem;
+            width: 300px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: #50fa7b;
+            box-shadow: 0 0 20px rgba(80, 250, 123, 0.2);
+        }
+
+        .search-btn {
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #50fa7b, #40e66b);
+            border: none;
+            border-radius: 0 12px 12px 0;
+            color: #0f0f23;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(80, 250, 123, 0.3);
+        }
+
+        /* Product Grid */
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
         }
 
         .card {
-            background: linear-gradient(145deg, #1e1e2e, #2a2a3e);
-            border: 1px solid rgba(99, 102, 241, 0.2);
+            background: rgba(30, 30, 46, 0.6); /* Glassmorphism */
+            backdrop-filter: blur(12px);
             border-radius: 16px;
-            padding: 30px;
-            transition: transform 0.3s, box-shadow 0.3s;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             position: relative;
             overflow: hidden;
+            cursor: pointer;
             opacity: 0;
-            animation: fadeInUp 0.8s ease-out forwards;
+            animation: fadeInUp 0.6s ease-out forwards;
         }
-        
-        .card:nth-child(1) { animation-delay: 0.2s; }
-        .card:nth-child(2) { animation-delay: 0.4s; }
-        .card:nth-child(3) { animation-delay: 0.6s; }
-        .card:nth-child(4) { animation-delay: 0.8s; }
+
+        .card-image {
+            width: 100%;
+            height: 180px;
+            background: #2a2a3e;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+        .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        .card:hover .card-image img {
+            transform: scale(1.1);
+        }
+
+        .card:nth-child(1) { animation-delay: 0.1s; }
+        .card:nth-child(2) { animation-delay: 0.2s; }
+        .card:nth-child(3) { animation-delay: 0.3s; }
+        .card:nth-child(4) { animation-delay: 0.4s; }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #50fa7b, #ffb86c, #bd93f9);
+            border-radius: 16px 16px 0 0;
+            transition: height 0.3s ease;
+        }
 
         .card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
-            border-color: #50fa7b;
+            transform: translateY(-15px) scale(1.02);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4), 0 0 30px rgba(80, 250, 123, 0.1);
+            border-color: rgba(80, 250, 123, 0.5);
+        }
+
+        .card:hover::before {
+            height: 6px;
+        }
+
+        .card:hover .btn-buy {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(80, 250, 123, 0.4);
         }
 
         .card h3 {
-            margin-top: 0;
-            color: #8be9fd;
-            font-size: 1.5em;
+            color: #f8f8f2;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
         }
 
         .price {
-            font-size: 1.8em;
+            font-size: 1.5rem;
             font-weight: 700;
             color: #50fa7b;
-            margin: 20px 0;
-            text-shadow: 0 0 10px rgba(80, 250, 123, 0.2);
+            margin-bottom: 1rem;
         }
 
         .features {
             list-style: none;
-            padding: 0;
-            margin-bottom: 30px;
-            color: #e2e8f0;
-            font-size: 0.9em;
+            margin-bottom: 1.5rem;
         }
 
-        .features li { margin-bottom: 10px; }
-        .features li::before { content: '✓ '; color: #ff79c6; }
+        .features li {
+            color: #a0a0b0;
+            margin-bottom: 0.5rem;
+            position: relative;
+            padding-left: 1.5rem;
+        }
+
+        .features li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #50fa7b;
+            font-weight: bold;
+        }
 
         .btn-buy {
-            display: block;
-            width: 100%;
-            padding: 15px;
+            display: inline-block;
+            padding: 0.8rem 1.5rem;
             background: linear-gradient(135deg, #50fa7b, #40e66b);
             color: #0f0f23;
-            text-align: center;
             text-decoration: none;
-            font-weight: 700;
-            border-radius: 12px;
-            text-transform: uppercase;
-            transition: 0.3s;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
         }
 
         .btn-buy:hover {
-            box-shadow: 0 0 20px rgba(80, 250, 123, 0.4);
-            transform: scale(1.02);
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(80, 250, 123, 0.6);
         }
 
-        /* Search Form */
-        .search-wrapper {
-            text-align: center;
-            margin-bottom: 40px;
+        /* Efek Kilau pada Button */
+        .btn-buy::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: 0.5s;
         }
-        .search-input {
-            padding: 12px 20px;
-            width: 300px;
-            border-radius: 25px;
-            border: 1px solid #bd93f9;
-            background: rgba(15, 15, 35, 0.8);
-            color: #fff;
-            outline: none;
-        }
-        .search-btn {
-            padding: 12px 25px;
-            border-radius: 25px;
-            border: none;
-            background: linear-gradient(135deg, #bd93f9, #ff79c6);
-            color: #0f0f23;
-            font-weight: bold;
-            cursor: pointer;
-            margin-left: 10px;
+        .btn-buy:hover::after {
+            left: 100%;
         }
 
-        /* About Us Section */
+        /* About Section */
         .about-us-section {
+            background: rgba(26, 26, 46, 0.8);
+            backdrop-filter: blur(5px);
             padding: 80px 0;
-            background: rgba(15, 15, 35, 0.8);
-            border-top: 1px solid rgba(80, 250, 123, 0.1);
-        }
-
-        .about-us-section .container {
             text-align: center;
         }
 
         .about-us-section p {
             max-width: 800px;
             margin: 0 auto;
-            color: #c4c9d4;
+            font-size: 1.1rem;
+            color: #a0a0b0;
             line-height: 1.8;
-            font-size: 1.1em;
         }
 
-        /* Testimonials Section */
+        /* About Section Gallery */
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .about-gallery {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .gallery-item {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            aspect-ratio: 1;
+        }
+
+        .gallery-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .gallery-item:hover .gallery-img {
+            transform: scale(1.1);
+        }
+
+        .gallery-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        /* Testimonials */
         .testimonials-section {
-            padding: 80px 20px;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            border-top: 1px solid rgba(80, 250, 123, 0.1);
+            padding: 80px 0;
+            background: transparent;
         }
 
         .testimonial-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            margin-top: 40px;
+            gap: 2rem;
         }
 
         .testimonial-card {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 30px;
+            background: rgba(30, 30, 46, 0.6);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
             border-radius: 16px;
-            border: 1px solid rgba(99, 102, 241, 0.2);
-            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
         }
 
-        .testimonial-card::before {
-            content: '"';
-            font-size: 4em;
-            color: rgba(80, 250, 123, 0.2);
-            position: absolute;
-            top: 10px;
-            left: 20px;
-            font-family: serif;
+        .testimonial-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
 
         .testimonial-text {
             font-style: italic;
             color: #e2e8f0;
-            margin-bottom: 20px;
-            line-height: 1.6;
+            margin-bottom: 1rem;
+            font-size: 1rem;
         }
 
         .testimonial-author {
             color: #50fa7b;
-            font-weight: bold;
+            font-weight: 600;
             text-align: right;
         }
 
         /* FAQ Section */
         .faq-section {
-            padding: 80px 20px;
-            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
-            border-top: 1px solid rgba(80, 250, 123, 0.1);
+            padding: 80px 0;
+            background: rgba(26, 26, 46, 0.8);
         }
 
         .faq-container {
             max-width: 800px;
-            margin: 0 auto;
         }
 
         details {
-            background: linear-gradient(145deg, #1e1e2e, #2a2a3e);
-            margin-bottom: 20px;
+            background: rgba(30, 30, 46, 0.6);
+            backdrop-filter: blur(5px);
             border-radius: 12px;
+            margin-bottom: 1rem;
             border: 1px solid rgba(99, 102, 241, 0.2);
             overflow: hidden;
-            transition: all 0.3s ease;
-        }
-
-        details:hover {
-            border-color: #50fa7b;
-            box-shadow: 0 5px 15px rgba(80, 250, 123, 0.1);
         }
 
         summary {
-            padding: 20px;
+            padding: 1.5rem;
             cursor: pointer;
             font-weight: 600;
-            color: #e2e8f0;
-            list-style: none;
-            position: relative;
+            color: #f8f8f2;
+            transition: background 0.3s ease;
         }
 
-        summary::-webkit-details-marker {
-            display: none;
-        }
-
-        summary::after {
-            content: '+';
-            position: absolute;
-            right: 20px;
-            color: #50fa7b;
-            font-weight: bold;
-            font-size: 1.2em;
-        }
-
-        details[open] summary::after {
-            content: '-';
-            color: #ff5555;
+        summary:hover {
+            background: rgba(80, 250, 123, 0.1);
         }
 
         .faq-answer {
-            padding: 20px;
+            padding: 0 1.5rem 1.5rem;
             color: #a0a0b0;
             line-height: 1.6;
-            background: rgba(0, 0, 0, 0.2);
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         /* Contact Section */
         .contact-section {
-            padding: 80px 20px;
-            background: rgba(15, 15, 35, 0.8);
-            border-top: 1px solid rgba(80, 250, 123, 0.1);
+            padding: 80px 0;
+            background: transparent;
         }
 
         .contact-form {
             max-width: 600px;
             margin: 0 auto;
-            background: linear-gradient(145deg, #1e1e2e, #2a2a3e);
-            padding: 40px;
-            border-radius: 16px;
-            border: 1px solid rgba(99, 102, 241, 0.2);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 1.5rem;
         }
 
         .form-group label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 0.5rem;
             color: #bd93f9;
             font-weight: 600;
         }
 
-        .form-group input, .form-group textarea {
+        .form-group input,
+        .form-group textarea {
             width: 100%;
-            padding: 12px;
-            background: #2d2d42;
-            border: 1px solid rgba(99, 102, 241, 0.3);
+            padding: 1rem;
+            background: rgba(26, 26, 46, 0.6);
+            border: 2px solid rgba(99, 102, 241, 0.3);
             border-radius: 8px;
-            color: #f8f8f2;
+            color: #e2e8f0;
+            font-family: inherit;
             outline: none;
-            transition: 0.3s;
+            transition: all 0.3s ease;
         }
 
-        .form-group input:focus, .form-group textarea:focus {
+        .form-group input:focus,
+        .form-group textarea:focus {
             border-color: #50fa7b;
-            box-shadow: 0 0 10px rgba(80, 250, 123, 0.2);
+            box-shadow: 0 0 20px rgba(80, 250, 123, 0.2);
         }
 
         .btn-submit {
             width: 100%;
-            padding: 14px;
+            padding: 1rem;
             background: linear-gradient(135deg, #50fa7b, #40e66b);
-            color: #0f0f23;
             border: none;
             border-radius: 8px;
-            font-weight: bold;
+            color: #0f0f23;
+            font-weight: 600;
             cursor: pointer;
-            text-transform: uppercase;
-            transition: 0.3s;
+            transition: all 0.3s ease;
         }
 
         .btn-submit:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(80, 250, 123, 0.3);
+            box-shadow: 0 5px 15px rgba(80, 250, 123, 0.3);
         }
 
         /* Footer */
         .footer {
-            text-align: center;
+            background: rgba(15, 15, 35, 0.9);
+            backdrop-filter: blur(10px);
             padding: 40px 20px;
-            background: rgba(15, 15, 35, 0.95);
-            border-top: 1px solid rgba(80, 250, 123, 0.1);
-            margin-top: 50px;
+            text-align: center;
+            border-top: 1px solid rgba(99, 102, 241, 0.2);
         }
 
         .social-links {
-            margin-bottom: 20px;
+            margin-bottom: 1rem;
         }
 
         .social-links a {
-            color: #bd93f9;
+            color: #a0a0b0;
             text-decoration: none;
-            margin: 0 15px;
-            font-size: 1.1em;
-            transition: color 0.3s;
+            margin: 0 1rem;
+            transition: color 0.3s ease;
         }
 
         .social-links a:hover {
             color: #50fa7b;
-            text-shadow: 0 0 10px rgba(80, 250, 123, 0.4);
         }
 
         .footer p {
             color: #6272a4;
-            font-size: 0.9em;
-            margin: 0;
-        }
-
-        /* Newsletter Form */
-        .newsletter-form {
-            margin-bottom: 30px;
-            display: flex;
-            justify-content: center;
-        }
-
-        .newsletter-form form {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .newsletter-input {
-            padding: 10px 15px;
-            border-radius: 20px;
-            border: 1px solid #bd93f9;
-            background: rgba(15, 15, 35, 0.8);
-            color: #fff;
-            outline: none;
-            width: 250px;
-        }
-
-        .newsletter-btn {
-            padding: 10px 20px;
-            border-radius: 20px;
-            border: none;
-            background: linear-gradient(135deg, #50fa7b, #40e66b);
-            color: #0f0f23;
-            font-weight: bold;
-            cursor: pointer;
+            font-size: 0.9rem;
         }
 
         /* Back to Top Button */
         #backToTop {
-            display: none;
             position: fixed;
-            bottom: 30px;
-            right: 30px;
-            z-index: 99;
-            font-size: 18px;
-            border: none;
-            outline: none;
-            background: linear-gradient(135deg, #bd93f9, #ff79c6);
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #50fa7b, #40e66b);
             color: #0f0f23;
-            cursor: pointer;
-            padding: 15px;
+            border: none;
             border-radius: 50%;
-            box-shadow: 0 0 15px rgba(189, 147, 249, 0.4);
+            width: 50px;
+            height: 50px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            opacity: 0;
+            visibility: hidden;
             transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        #backToTop.show {
+            opacity: 1;
+            visibility: visible;
         }
 
         #backToTop:hover {
-            background: linear-gradient(135deg, #ff79c6, #bd93f9);
-            transform: translateY(-5px);
-            box-shadow: 0 0 25px rgba(255, 121, 198, 0.6);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(80, 250, 123, 0.3);
+        }
+
+        /* Chat Widget */
+        .chat-button {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, #bd93f9, #ff79c6);
+            color: #0f0f23;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(189, 147, 249, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .chat-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(189, 147, 249, 0.4);
+        }
+
+        .chat-window {
+            position: fixed;
+            bottom: 90px;
+            left: 20px;
+            width: 350px;
+            height: 400px;
+            background: rgba(30, 30, 46, 0.9);
+            backdrop-filter: blur(15px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            display: none;
+            flex-direction: column;
+            z-index: 1001;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #bd93f9, #ff79c6);
+            color: #0f0f23;
+            padding: 1rem;
+            border-radius: 16px 16px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+        }
+
+        .chat-close {
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+        }
+
+        .chat-close:hover {
+            transform: scale(1.2);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            background: rgba(15, 15, 35, 0.5);
+        }
+
+        .message {
+            margin-bottom: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 12px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+
+        .message.received {
+            background: rgba(80, 250, 123, 0.2);
+            color: #50fa7b;
+            align-self: flex-start;
+        }
+
+        .message.sent {
+            background: rgba(189, 147, 249, 0.2);
+            color: #bd93f9;
+            align-self: flex-end;
+            margin-left: auto;
+        }
+
+        .chat-input-area {
+            display: flex;
+            padding: 1rem;
+            background: rgba(26, 26, 46, 0.8);
+            border-radius: 0 0 16px 16px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 8px;
+            background: rgba(15, 15, 35, 0.8);
+            color: #e2e8f0;
+            outline: none;
+        }
+
+        .chat-send {
+            margin-left: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, #50fa7b, #40e66b);
+            color: #0f0f23;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .chat-send:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(80, 250, 123, 0.3);
         }
 
         /* Cookie Banner */
@@ -559,196 +875,169 @@ if (isset($_SESSION['cart'])) {
             position: fixed;
             bottom: 0;
             left: 0;
-            width: 100%;
-            background: rgba(15, 15, 35, 0.95);
-            border-top: 1px solid #50fa7b;
-            padding: 20px;
-            display: none; /* Hidden by default */
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-            z-index: 1000;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
-        }
-        
-        .cookie-text {
-            color: #e2e8f0;
-            font-size: 0.9em;
-        }
-        
-        .cookie-btn {
-            padding: 10px 20px;
-            background: linear-gradient(135deg, #50fa7b, #40e66b);
-            color: #0f0f23;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-        
-        .cookie-btn:hover {
-            box-shadow: 0 0 15px rgba(80, 250, 123, 0.4);
-        }
-
-        /* Chat Widget */
-        .chat-button {
-            position: fixed;
-            bottom: 30px;
-            right: 100px;
-            z-index: 99;
-            font-size: 24px;
-            border: none;
-            outline: none;
-            background: linear-gradient(135deg, #50fa7b, #40e66b);
-            color: #0f0f23;
-            cursor: pointer;
-            padding: 0;
-            border-radius: 50%;
-            box-shadow: 0 0 15px rgba(80, 250, 123, 0.4);
-            transition: all 0.3s ease;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .chat-button:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 0 25px rgba(80, 250, 123, 0.6);
-        }
-
-        .chat-window {
+            right: 0;
+            background: rgba(30, 30, 46, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(99, 102, 241, 0.2);
+            padding: 1rem;
             display: none;
-            position: fixed;
-            bottom: 100px;
-            right: 30px;
-            width: 320px;
-            height: 400px;
-            background: linear-gradient(145deg, #1e1e2e, #2a2a3e);
-            border-radius: 16px;
-            border: 1px solid rgba(80, 250, 123, 0.3);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            z-index: 100;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .chat-header {
-            background: linear-gradient(135deg, #50fa7b, #40e66b);
-            padding: 15px;
-            color: #0f0f23;
-            font-weight: bold;
-            display: flex;
             justify-content: space-between;
             align-items: center;
+            z-index: 1002;
         }
 
-        .chat-close {
-            cursor: pointer;
-            font-size: 1.2em;
+        .cookie-text {
+            color: #a0a0b0;
+            font-size: 0.9rem;
         }
 
-        .chat-messages {
-            flex: 1;
-            padding: 15px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .message {
-            padding: 8px 12px;
-            border-radius: 10px;
-            max-width: 80%;
-            font-size: 0.9em;
-            line-height: 1.4;
-        }
-
-        .message.received {
-            background: rgba(255, 255, 255, 0.1);
-            align-self: flex-start;
-            color: #e2e8f0;
-            border-bottom-left-radius: 2px;
-        }
-
-        .message.sent {
-            background: rgba(80, 250, 123, 0.2);
-            align-self: flex-end;
-            color: #50fa7b;
-            border: 1px solid rgba(80, 250, 123, 0.2);
-            border-bottom-right-radius: 2px;
-        }
-
-        .chat-input-area {
-            padding: 15px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            gap: 10px;
-            background: rgba(0, 0, 0, 0.2);
-        }
-
-        .chat-input {
-            flex: 1;
-            padding: 8px 12px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(255, 255, 255, 0.05);
-            color: #fff;
-            outline: none;
-            font-size: 0.9em;
-        }
-        
-        .chat-input:focus {
-            border-color: #50fa7b;
-        }
-
-        .chat-send {
-            background: none;
+        .cookie-btn {
+            background: linear-gradient(135deg, #50fa7b, #40e66b);
+            color: #0f0f23;
             border: none;
-            color: #50fa7b;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 1.2em;
-            padding: 0 5px;
-            transition: transform 0.2s;
+            font-weight: 600;
+            transition: all 0.3s ease;
         }
-        
-        .chat-send:hover {
-            transform: scale(1.1);
+
+        .cookie-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(80, 250, 123, 0.3);
         }
-        
+
         /* Animations */
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        
-        .hero, .section-title, .about-us-section, .testimonials-section, .faq-section, .contact-section {
-            animation: fadeInUp 0.8s ease-out;
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Scroll Animation Classes */
+        .scroll-animate {
+            opacity: 0;
+            transform: translateY(50px);
+            transition: all 0.6s ease-out;
+        }
+
+        .scroll-animate.animate {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .slide-left {
+            opacity: 0;
+            transform: translateX(-50px);
+            transition: all 0.6s ease-out;
+        }
+
+        .slide-left.animate {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .slide-right {
+            opacity: 0;
+            transform: translateX(50px);
+            transition: all 0.6s ease-out;
+        }
+
+        .slide-right.animate {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .testimonial-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chat-window {
+                width: calc(100vw - 40px);
+                left: 20px;
+                right: 20px;
+            }
+
+            .search-input {
+                width: 200px;
+            }
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
         }
     </style>
 </head>
 <body>
 
     <nav class="navbar">
-        <a href="index.php" class="logo">CyberSoft</a>
-        <div class="nav-links">
-            <a href="#products">Produk</a>
-            <a href="#about">Tentang Kami</a>
-            <a href="#faq">FAQ</a>
-            <a href="#contact">Kontak</a>
-            <a href="login.php" class="btn-login">Admin Login</a>
-            <a href="keranjang.php" class="cart-icon">
-                🛒 <?php if($cart_count > 0): ?><span class="cart-badge"><?= $cart_count ?></span><?php endif; ?>
-            </a>
+        <div class="container" style="position: relative;">
+            <a href="index.php" class="logo">CyberSoft</a>
+            <div class="navbar-right">
+                <?php if (isset($_SESSION['username'])): ?>
+                    <a href="logout.php" class="btn-login" style="background: linear-gradient(135deg, #ff5555, #ff79c6);">Logout</a>
+                <?php else: ?>
+                    <a href="login.php" class="btn-login">Login</a>
+                <?php endif; ?>
+                
+                <div class="hamburger" onclick="toggleMenu()">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+            <div class="nav-links">
+                <a href="#products">Produk</a>
+                <a href="#about">Tentang Kami</a>
+                <a href="#faq">FAQ</a>
+                <a href="#contact">Kontak</a>
+                <?php if (isset($_SESSION['username'])): ?>
+                    <?php if ($_SESSION['level'] == 'admin'): ?>
+                        <a href="dashboard.php">Dashboard</a>
+                    <?php else: ?>
+                        <a href="dashboardCustomer.php">Akun Saya</a>
+                    <?php endif; ?>
+                <?php endif; ?>
+            </div>
         </div>
     </nav>
 
     <header class="hero">
         <h1>Upgrade Digital Life Anda</h1>
         <p>Solusi software terbaik untuk produktivitas, keamanan, dan kreativitas tanpa batas.</p>
+        <a href="#products" class="btn-hero-cta">Shop Now</a>
     </header>
 
     <div class="container" id="products">
@@ -767,15 +1056,17 @@ if (isset($_SESSION['cart'])) {
             <?php else: ?>
                 <?php foreach ($filtered_products as $p): ?>
                     <div class="card">
+                        <div class="card-image">
+                            <img src="<?= isset($p['image']) ? $p['image'] : 'asset/default.jpg' ?>" alt="<?= htmlspecialchars($p['name']) ?>" onerror="this.src='https://via.placeholder.com/300x200?text=<?= urlencode($p['name']) ?>'">
+                        </div>
                         <h3><?= htmlspecialchars($p['name']) ?></h3>
                         <p style="color: #a0a0b0;"><?= htmlspecialchars($p['desc']) ?></p>
-                        <div class="price">Rp <?= number_format($p['price'], 0, ',', '.') ?></div>
                         <ul class="features">
                             <?php foreach ($p['features'] as $f): ?>
                                 <li><?= htmlspecialchars($f) ?></li>
                             <?php endforeach; ?>
                         </ul>
-                        <a href="tambah_keranjang.php?software=<?= urlencode($p['name']) ?>&price=<?= $p['price'] ?>" class="btn-buy">Tambah ke Keranjang</a>
+                        <a href="detail_produk.php?name=<?= urlencode($p['name']) ?>" class="btn-buy">Lihat Detail</a>
                     </div>
                 <?php endforeach; ?>
             <?php endif; ?>
@@ -785,9 +1076,33 @@ if (isset($_SESSION['cart'])) {
     <section class="about-us-section" id="about">
         <div class="container">
             <h2 class="section-title">Tentang CyberSoft</h2>
-            <p>
-                CyberSoft didirikan pada tahun 2020 dengan misi untuk menyediakan solusi perangkat lunak yang inovatif, aman, dan andal bagi individu maupun bisnis. Kami percaya bahwa teknologi yang tepat dapat membuka potensi tak terbatas. Tim kami terdiri dari para ahli yang bersemangat dalam menciptakan produk yang tidak hanya fungsional tetapi juga mudah digunakan. Dari keamanan siber hingga alat kreativitas, kami berkomitmen untuk memberikan yang terbaik bagi pelanggan kami di seluruh dunia.
-            </p>
+            <div class="about-content">
+                <div class="about-text scroll-animate">
+                    <p>
+                        CyberSoft didirikan pada tahun 2020 dengan misi untuk menyediakan solusi perangkat lunak yang inovatif, aman, dan andal bagi individu maupun bisnis. Kami percaya bahwa teknologi yang tepat dapat membuka potensi tak terbatas. Tim kami terdiri dari para ahli yang bersemangat dalam menciptakan produk yang tidak hanya fungsional tetapi juga mudah digunakan. Dari keamanan siber hingga alat kreativitas, kami berkomitmen untuk memberikan yang terbaik bagi pelanggan kami di seluruh dunia.
+                    </p>
+                </div>
+                <div class="about-gallery">
+                    <div class="gallery-item slide-left">
+                        <img src="asset/technology-digital-electronic-product.webp" alt="Technology Products" class="gallery-img">
+                        <div class="gallery-overlay">
+                            <span>Produk Digital</span>
+                        </div>
+                    </div>
+                    <div class="gallery-item slide-right">
+                        <img src="asset/website for mobile store.jpg" alt="Mobile Store" class="gallery-img">
+                        <div class="gallery-overlay">
+                            <span>Store Mobile</span>
+                        </div>
+                    </div>
+                    <div class="gallery-item scroll-animate">
+                        <img src="asset/software-background.jpg" alt="Software Background" class="gallery-img">
+                        <div class="gallery-overlay">
+                            <span>Background Software</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -804,7 +1119,7 @@ if (isset($_SESSION['cart'])) {
                     <div class="testimonial-author">- Sarah Wijaya, Content Creator</div>
                 </div>
                 <div class="testimonial-card">
-                    <p class="testimonial-text">"Cloud ERP System membantu saya mengelola stok dan keuangan toko cabang dengan sangat mudah dari mana saja."</p>
+                    <p class="testimonial-text">"Cloud ERP System membantu saya mengelola keuangan toko cabang dengan sangat mudah dari mana saja."</p>
                     <div class="testimonial-author">- Andi Pratama, Pemilik Retail</div>
                 </div>
             </div>
@@ -818,21 +1133,21 @@ if (isset($_SESSION['cart'])) {
             <details>
                 <summary>Bagaimana cara membeli software?</summary>
                 <div class="faq-answer">
-                    Pilih software yang Anda inginkan, klik tombol "Beli Sekarang", isi formulir pemesanan, dan lakukan pembayaran sesuai instruksi yang diberikan.
+                    Pilih produk, klik 'Lihat Detail', lalu 'Beli Sekarang' untuk menambahkannya ke keranjang. Setelah checkout, pesanan Anda akan muncul di dashboard akun Anda. Lakukan pembayaran sesuai instruksi dan upload bukti transfer pada halaman riwayat pesanan.
                 </div>
             </details>
 
             <details>
                 <summary>Apakah lisensi berlaku selamanya?</summary>
                 <div class="faq-answer">
-                    Tergantung pada jenis software. Sebagian besar produk kami menawarkan lisensi seumur hidup (lifetime), namun ada juga yang berbasis langganan tahunan. Cek detail pada deskripsi produk.
+                    Setiap produk memiliki tipe lisensi yang berbeda (seumur hidup atau langganan tahunan). Informasi detail mengenai lisensi dapat ditemukan pada halaman deskripsi masing-masing produk.
                 </div>
             </details>
 
             <details>
                 <summary>Metode pembayaran apa saja yang tersedia?</summary>
                 <div class="faq-answer">
-                    Kami menerima pembayaran melalui Transfer Bank, Kartu Kredit, E-Wallet (OVO, GoPay, Dana), dan QRIS.
+                    Saat ini kami menerima pembayaran melalui Transfer Bank (BCA & Mandiri) dan E-Wallet (OVO & GoPay). Instruksi detail akan diberikan saat Anda melakukan proses pembayaran di dashboard Anda.
                 </div>
             </details>
 
@@ -876,12 +1191,6 @@ if (isset($_SESSION['cart'])) {
     </section>
 
     <footer class="footer">
-        <div class="newsletter-form">
-            <form action="#" method="POST">
-                <input type="email" name="newsletter_email" class="newsletter-input" placeholder="Langganan Newsletter..." required>
-                <button type="submit" class="newsletter-btn">Subscribe</button>
-            </form>
-        </div>
         <div class="social-links">
             <a href="#" target="_blank">Instagram</a>
             <a href="#" target="_blank">Twitter</a>
@@ -932,6 +1241,30 @@ if (isset($_SESSION['cart'])) {
                 mybutton.style.display = "none";
             }
         }
+
+        // Scroll Animation Logic
+        function isInViewport(element) {
+            const rect = element.getBoundingClientRect();
+            return rect.top < window.innerHeight && rect.bottom > 0;
+        }
+
+        function animateOnScroll() {
+            const elements = document.querySelectorAll('.scroll-animate, .slide-left, .slide-right');
+            elements.forEach(el => {
+                if (isInViewport(el) && !el.classList.contains('animate')) {
+                    el.classList.add('animate');
+                }
+            });
+        }
+
+        // Modify onscroll to include animation
+        window.onscroll = function() {
+            scrollFunction();
+            animateOnScroll();
+        };
+
+        // Also call on load
+        window.addEventListener('load', animateOnScroll);
 
         // When the user clicks on the button, scroll to the top of the document
         function topFunction() {
@@ -992,8 +1325,15 @@ if (isset($_SESSION['cart'])) {
                 sendMessage();
             }
         }
+
+        function toggleMenu() {
+            const hamburger = document.querySelector('.hamburger');
+            const navLinks = document.querySelector('.nav-links');
+            hamburger.classList.toggle('active');
+            navLinks.classList.toggle('active');
+        }
+
     </script>
 
 </body>
-</html>
 </html>

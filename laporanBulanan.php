@@ -25,21 +25,6 @@ while ($row = $res_jual->fetch_assoc()) {
     $data_jual[] = $row;
 }
 
-// Query Pembelian Bulanan
-$sql_beli = "SELECT * FROM table_pembelian 
-             WHERE MONTH(tanggal_pembelian) = '$bulan' 
-             AND YEAR(tanggal_pembelian) = '$tahun'";
-$res_beli = $conn->query($sql_beli);
-
-// Hitung Total Pembelian
-$total_pembelian = 0;
-$data_beli = [];
-while ($row = $res_beli->fetch_assoc()) {
-    $total_pembelian += $row['harga_beli'];
-    $data_beli[] = $row;
-}
-
-$laba_bersih = $total_penjualan - $total_pembelian;
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -157,16 +142,6 @@ $laba_bersih = $total_penjualan - $total_pembelian;
                 <h3>Total Penjualan (Masuk)</h3>
                 <div class="amount" style="color: #50fa7b;">Rp <?= number_format($total_penjualan, 0, ',', '.') ?></div>
             </div>
-            <div class="card">
-                <h3>Total Pembelian (Keluar)</h3>
-                <div class="amount" style="color: #ff5555;">Rp <?= number_format($total_pembelian, 0, ',', '.') ?></div>
-            </div>
-            <div class="card">
-                <h3>Laba Bersih</h3>
-                <div class="amount <?= $laba_bersih >= 0 ? 'profit' : 'loss' ?>">
-                    Rp <?= number_format($laba_bersih, 0, ',', '.') ?>
-                </div>
-            </div>
         </div>
 
         <div style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 30px;">
@@ -184,13 +159,12 @@ $laba_bersih = $total_penjualan - $total_pembelian;
         const labaRugiChart = new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: ['Pemasukan (Penjualan)', 'Pengeluaran (Pembelian)'],
+                labels: ['Pemasukan (Penjualan)'],
                 datasets: [{
                     label: 'Total (Rp)',
-                    data: [<?= $total_penjualan ?>, <?= $total_pembelian ?>],
+                    data: [<?= $total_penjualan ?>],
                     backgroundColor: [
-                        'rgba(80, 250, 123, 0.6)', // Hijau untuk Pemasukan
-                        'rgba(255, 85, 85, 0.6)'   // Merah untuk Pengeluaran
+                        'rgba(80, 250, 123, 0.6)' // Hijau untuk Pemasukan
                     ],
                     borderColor: [
                         '#50fa7b',
