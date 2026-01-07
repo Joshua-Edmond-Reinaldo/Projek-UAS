@@ -51,7 +51,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !empty($_SESSION['cart'])) {
     $applicable_products = [];
     $applicable_categories = [];
 
-    if ($coupon_data && $coupon_data['apply_to_all'] == 0) {
+    // Ubah logika: Cek berdasarkan apply_rule, bukan apply_to_all
+    if ($coupon_data && $coupon_data['apply_rule'] != 'all') {
         $stmt_prods = $conn->prepare("SELECT product_name FROM table_coupon_products WHERE coupon_id = ?");
         $stmt_prods->bind_param("i", $coupon_data['id']);
         $stmt_prods->execute();
@@ -78,11 +79,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !empty($_SESSION['cart'])) {
         $subtotal = $item['price'] * $item['qty'];
         $original_total += $subtotal;
         if ($coupon_data) {
-            if ($coupon_data['apply_to_all'] == 1 || in_array($item['name'], $applicable_products)) {
+            if ($coupon_data['apply_rule'] == 'all') {
+                $discountable_total += $subtotal;
+            } elseif ($coupon_data['apply_rule'] == 'product' && in_array($item['name'], $applicable_products)) {
                 $discountable_total += $subtotal;
             } elseif ($coupon_data['apply_rule'] == 'category') {
                 $product_to_category_map = array_column($products, 'category', 'name');
-                $item_category = isset($product_to_category_map[$item['name']]) ? $product_to_category_map[$item['name']] : null;
+                $item_category = isset($product_to_category_map[$item['name']]) ? $product_to_category_map[$item['name']] : '';
                 if ($item_category && in_array($item_category, $applicable_categories)) $discountable_total += $subtotal;
             }
         }
@@ -116,7 +119,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !empty($_SESSION['cart'])) {
                 $is_applicable = true;
             } elseif ($coupon_data['apply_rule'] == 'category') {
                  $product_to_category_map = array_column($products, 'category', 'name');
-                 $item_category = isset($product_to_category_map[$item['name']]) ? $product_to_category_map[$item['name']] : null;
+                 $item_category = isset($product_to_category_map[$item['name']]) ? $product_to_category_map[$item['name']] : '';
                  if ($item_category && in_array($item_category, $applicable_categories)) $is_applicable = true;
             }
 

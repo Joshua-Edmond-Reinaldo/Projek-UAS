@@ -87,7 +87,7 @@ $total_bayar = 0;
         <?php if (empty($cart)): ?>
             <div class="empty-cart">
                 <p>Keranjang Anda masih kosong.</p>
-                <a href="index.php" class="btn btn-checkout" style="width: auto;">Mulai Belanja</a>
+                <a href="dashboardCustomer.php" class="btn btn-checkout" style="width: auto;">Mulai Belanja</a>
             </div>
         <?php else: ?>
             <table>
@@ -127,7 +127,7 @@ $total_bayar = 0;
             </table>
 
             <a href="checkout_keranjang.php" class="btn btn-checkout">Lanjut ke Pembayaran</a>
-            <a href="index.php" class="btn btn-continue">Belanja Lagi</a>
+            <a href="dashboardCustomer.php" class="btn btn-continue">Belanja Lagi</a>
         <?php endif; ?>
     </div>
 </body>

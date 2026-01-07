@@ -12,6 +12,29 @@ $sql = "SELECT * FROM table_coupons WHERE id = $id";
 $result = $conn->query($sql);
 $row = $result->fetch_assoc();
 if (!$row) die("Data tidak ditemukan.");
+
+// Ambil data produk dari file pusat
+require "data_produk.php";
+$categories = array_unique(array_column($products, 'category'));
+sort($categories);
+
+// Ambil produk yang terhubung (jika ada)
+$linked_products = [];
+if ($row['apply_rule'] == 'product') {
+    $res_p = $conn->query("SELECT product_name FROM table_coupon_products WHERE coupon_id = $id");
+    while($p = $res_p->fetch_assoc()) {
+        $linked_products[] = $p['product_name'];
+    }
+}
+
+// Ambil kategori yang terhubung (jika ada)
+$linked_categories = [];
+if ($row['apply_rule'] == 'category') {
+    $res_c = $conn->query("SELECT category_name FROM table_coupon_categories WHERE coupon_id = $id");
+    while($c = $res_c->fetch_assoc()) {
+        $linked_categories[] = $c['category_name'];
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -48,6 +71,9 @@ if (!$row) die("Data tidak ditemukan.");
         .checkbox-group { display: flex; align-items: center; background: #2d2d42; padding: 10px; border-radius: 8px; margin-bottom: 20px; }
         .checkbox-group input { width: auto; margin: 0 10px 0 0; }
         .checkbox-group label { margin: 0; color: #f8f8f2; }
+        .radio-group { display: flex; flex-direction: column; gap: 10px; background: #2d2d42; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .radio-group label { margin: 0; color: #f8f8f2; display: flex; align-items: center; }
+        .radio-group input { width: auto; margin: 0 10px 0 0; }
     </style>
 </head>
 <body>
@@ -64,6 +90,32 @@ if (!$row) die("Data tidak ditemukan.");
             </select>
             <label>Nilai Diskon</label>
             <input type="number" name="value" value="<?= $row['value'] ?>" required>
+            
+            <label>Berlaku Untuk</label>
+            <div class="radio-group">
+                <label><input type="radio" name="apply_rule" value="all" <?= $row['apply_rule'] == 'all' ? 'checked' : '' ?> onchange="toggleRuleSelects()"> Semua Produk</label>
+                <label><input type="radio" name="apply_rule" value="product" <?= $row['apply_rule'] == 'product' ? 'checked' : '' ?> onchange="toggleRuleSelects()"> Produk Tertentu</label>
+                <label><input type="radio" name="apply_rule" value="category" <?= $row['apply_rule'] == 'category' ? 'checked' : '' ?> onchange="toggleRuleSelects()"> Kategori Tertentu</label>
+            </div>
+
+            <div id="product-select-wrapper" style="display:<?= $row['apply_rule'] == 'product' ? 'block' : 'none' ?>; margin-bottom: 20px;">
+                <label>Pilih Produk</label>
+                <div class="checkbox-group" style="flex-direction: column; align-items: flex-start;">
+                    <?php foreach ($products as $p): ?>
+                        <label><input type="checkbox" name="products[]" value="<?= htmlspecialchars($p['name']) ?>" <?= in_array($p['name'], $linked_products) ? 'checked' : '' ?>> <?= htmlspecialchars($p['name']) ?></label>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+
+            <div id="category-select-wrapper" style="display:<?= $row['apply_rule'] == 'category' ? 'block' : 'none' ?>; margin-bottom: 20px;">
+                <label>Pilih Kategori</label>
+                <div class="checkbox-group" style="flex-direction: column; align-items: flex-start;">
+                    <?php foreach ($categories as $cat): ?>
+                        <label><input type="checkbox" name="categories[]" value="<?= htmlspecialchars($cat) ?>" <?= in_array($cat, $linked_categories) ? 'checked' : '' ?>> <?= htmlspecialchars($cat) ?></label>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+
             <div class="checkbox-group">
                 <input type="checkbox" id="limit_per_user" name="limit_per_user" value="1" <?= $row['limit_per_user'] ? 'checked' : '' ?>>
                 <label for="limit_per_user">Batasi penggunaan 1x per user</label>
@@ -76,5 +128,15 @@ if (!$row) die("Data tidak ditemukan.");
         </form>
         <a href="tampilDataKupon.php" class="btn-back">← Batal</a>
     </div>
+
+    <script>
+        function toggleRuleSelects() {
+            const rule = document.querySelector('input[name="apply_rule"]:checked').value;
+            const productWrapper = document.getElementById('product-select-wrapper');
+            const categoryWrapper = document.getElementById('category-select-wrapper');
+            productWrapper.style.display = (rule === 'product') ? 'block' : 'none';
+            categoryWrapper.style.display = (rule === 'category') ? 'block' : 'none';
+        }
+    </script>
 </body>
 </html>

@@ -42,10 +42,10 @@ require "koneksi.php";
         th, td { padding: 15px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
         th { background: #2d2d42; color: #50fa7b; }
         tr:hover { background: rgba(255,255,255,0.05); }
-        .btn { padding: 8px 16px; border-radius: 8px; text-decoration: none; font-weight: bold; color: #0f0f23; transition: 0.3s; display: inline-block; }
+        .btn { padding: 8px 16px; border-radius: 8px; text-decoration: none; font-weight: bold; color: #0f0f23; transition: 0.3s; display: inline-block; margin-right: 5px; margin-bottom: 5px; }
         .btn-add { background: #50fa7b; padding: 12px 24px; margin-bottom: 20px; }
-        .btn-edit { background: #ffb86c; font-size: 0.9em; }
-        .btn-delete { background: #ff5555; color: white; font-size: 0.9em; }
+        .btn-edit { background: linear-gradient(135deg, #ffb86c, #ff79c6); font-size: 0.9em; }
+        .btn-delete { background: linear-gradient(135deg, #ff5555, #ff4444); color: white; font-size: 0.9em; }
         .btn-back { background: #6272a4; color: white; margin-top: 20px; display: block; text-align: center; width: 200px; margin-left: auto; margin-right: auto; }
         .status-active { color: #50fa7b; }
         .status-expired { color: #ff5555; }
@@ -64,6 +64,7 @@ require "koneksi.php";
                     <th>Kode</th>
                     <th>Tipe</th>
                     <th>Nilai</th>
+                    <th>Berlaku Untuk</th>
                     <th>Limit 1x/User</th>
                     <th>Berlaku Sampai</th>
                     <th>Limit/Terpakai</th>
@@ -85,11 +86,12 @@ require "koneksi.php";
                             <td style='font-weight:bold; color:#fff;'>{$row['code']}</td>
                             <td>" . ucfirst($row['type']) . "</td>
                             <td>{$nilai}</td>
+                            <td>" . ucfirst($row['apply_rule']) . "</td>
                             <td style='text-align:center;'>{$limit_user_text}</td>
                             <td class='{$status_class}'>" . ($row['valid_until'] ? $row['valid_until'] : 'Selamanya') . "</td>
                             <td>{$row['usage_limit']} / {$row['used_count']}</td>
                             <td>
-                                <a href='detailKupon.php?id={$row['id']}' class='btn' style='background: #8be9fd; font-size: 0.9em; margin-right: 5px;'>Detail</a>
+                                <a href='detailKupon.php?id={$row['id']}' class='btn' style='background: linear-gradient(135deg, #8be9fd, #bd93f9); font-size: 0.9em;'>Detail</a>
                                 <a href='koreksiDataKupon.php?id={$row['id']}' class='btn btn-edit'>Edit</a>
                                 <a href='hapusDataKupon.php?id={$row['id']}' onclick=\"return confirm('Yakin hapus kupon ini?')\" class='btn btn-delete'>Hapus</a>
                             </td>
