@@ -1006,7 +1006,7 @@ if ($search) {
         <div class="container" style="position: relative;">
             <a href="index.php" class="logo">CyberSoft</a>
             <div class="navbar-right">
-                <?php if (isset($_SESSION['username'])): ?>
+                <?php if (isset($_SESSION['username']) && isset($_SESSION['level'])): ?>
                     <a href="logout.php" class="btn-login" style="background: linear-gradient(135deg, #ff5555, #ff79c6);">Logout</a>
                 <?php else: ?>
                     <a href="login.php" class="btn-login">Login</a>
@@ -1023,7 +1023,7 @@ if ($search) {
                 <a href="#about">Tentang Kami</a>
                 <a href="#faq">FAQ</a>
                 <a href="#contact">Kontak</a>
-                <?php if (isset($_SESSION['username'])): ?>
+                <?php if (isset($_SESSION['username']) && isset($_SESSION['level'])): ?>
                     <?php if ($_SESSION['level'] == 'admin'): ?>
                         <a href="dashboard.php">Dashboard</a>
                     <?php else: ?>
